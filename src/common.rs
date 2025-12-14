@@ -2,7 +2,10 @@ use std::collections::HashMap;
 use wayland_client::backend::ObjectId;
 
 use wayland_client::protocol::wl_registry;
-use wayland_client::{event_created_child, Connection, Dispatch, EventQueue, Proxy, QueueHandle};
+use wayland_client::{event_created_child, Connection, Dispatch, Proxy, QueueHandle};
+use wayland_protocols_wlr::output_management::v1::client::zwlr_output_mode_v1::Event as OutputModeEvent;
+
+use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_head_v1::ZwlrOutputConfigurationHeadV1;
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_v1::{
     Event as ConfigurationEvent, ZwlrOutputConfigurationV1,
 };
@@ -20,6 +23,14 @@ pub struct HeadInfo {
     pub name: Option<String>,
     pub description: Option<String>,
     pub serial: Option<String>,
+    pub modes: HashMap<ObjectId, HeadMode>,
+}
+
+#[derive(Debug)]
+pub struct HeadMode {
+    pub height: i32,
+    pub width: i32,
+    pub rate: i32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -45,6 +56,7 @@ impl HeadInfo {
             name: None,
             serial: None,
             head,
+            modes: HashMap::new(),
         }
     }
 }
@@ -137,6 +149,16 @@ impl Dispatch<ZwlrOutputHeadV1, ()> for AppData {
             HeadEvent::Name { name } => current_head.name = Some(name),
             HeadEvent::SerialNumber { serial_number } => current_head.serial = Some(serial_number),
             HeadEvent::Description { description } => current_head.description = Some(description),
+            HeadEvent::Mode { mode } => {
+                current_head.modes.insert(
+                    mode.id(),
+                    HeadMode {
+                        rate: -1,
+                        height: -1,
+                        width: -1,
+                    },
+                );
+            }
             _ => {}
         }
     }
@@ -148,12 +170,43 @@ impl Dispatch<ZwlrOutputHeadV1, ()> for AppData {
 
 impl Dispatch<ZwlrOutputModeV1, ()> for AppData {
     fn event(
-        _state: &mut Self,
+        state: &mut Self,
         _mode: &ZwlrOutputModeV1,
-        _event: <ZwlrOutputModeV1 as wayland_client::Proxy>::Event,
+        event: <ZwlrOutputModeV1 as wayland_client::Proxy>::Event,
         _: &(),
         _: &Connection,
         _: &QueueHandle<AppData>,
     ) {
+        for head in state.heads.values_mut() {
+            match head.modes.get_mut(&_mode.id()) {
+                Some(res) => {
+                    match event {
+                        OutputModeEvent::Size { height, width } => {
+                            res.height = height;
+                            res.width = width;
+                        },
+                        OutputModeEvent::Refresh { refresh } => {
+                            res.rate = refresh
+                        }
+                        _ => {}
+                    }
+                }
+                None => {
+                }
+            }
+        }
+    }
+}
+
+impl Dispatch<ZwlrOutputConfigurationHeadV1, ()> for AppData {
+    fn event(
+        _state: &mut Self,
+        _proxy: &ZwlrOutputConfigurationHeadV1,
+        _event: <ZwlrOutputConfigurationHeadV1 as Proxy>::Event,
+        _data: &(),
+        _conn: &Connection,
+        _qh: &QueueHandle<Self>,
+    ) {
+        todo!()
     }
 }
