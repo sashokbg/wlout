@@ -2,7 +2,7 @@ use crate::common::AppData;
 use wayland_client::EventQueue;
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_v1::ZwlrOutputConfigurationV1;
 
-pub fn mode_command(
+pub fn mode_set_command(
     name: &str,
     mode: &String,
     mut state: AppData,
@@ -12,7 +12,7 @@ pub fn mode_command(
     println!("SETTING MODE {} for display {}", mode, name)
 }
 
-pub fn list_modes(name: &str, state: AppData) {
+pub fn mode_list_command(name: &str, state: AppData) {
     for head in state.heads.values() {
         if head.name == Some(name.parse().unwrap()) {
             let mut modes: Vec<_> = head.modes.values().collect();
