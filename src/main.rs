@@ -82,7 +82,7 @@ fn main() {
             let configuration = manager.create_configuration(serial, &qh, ());
 
             match _sub_matches.get_one::<String>("mode") {
-                Some(name) => mode_command(name, state, configuration, event_queue),
+                Some(mode) => mode_command(name, mode, state, &configuration, event_queue),
                 None => {
                     list_modes(name, state);
                 }

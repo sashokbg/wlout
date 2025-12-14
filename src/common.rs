@@ -31,6 +31,8 @@ pub struct HeadMode {
     pub height: i32,
     pub width: i32,
     pub rate: i32,
+    pub is_preferred: bool,
+    pub is_current: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -149,15 +151,22 @@ impl Dispatch<ZwlrOutputHeadV1, ()> for AppData {
             HeadEvent::Name { name } => current_head.name = Some(name),
             HeadEvent::SerialNumber { serial_number } => current_head.serial = Some(serial_number),
             HeadEvent::Description { description } => current_head.description = Some(description),
+            HeadEvent::CurrentMode { mode } => {
+                current_head.modes.get_mut(&mode.id()).unwrap().is_current = true
+            }
             HeadEvent::Mode { mode } => {
-                current_head.modes.insert(
-                    mode.id(),
-                    HeadMode {
-                        rate: -1,
-                        height: -1,
-                        width: -1,
-                    },
-                );
+                if !current_head.modes.contains_key(&mode.id()) {
+                    current_head.modes.insert(
+                        mode.id(),
+                        HeadMode {
+                            rate: -1,
+                            height: -1,
+                            width: -1,
+                            is_preferred: false,
+                            is_current: false,
+                        },
+                    );
+                }
             }
             _ => {}
         }
@@ -179,20 +188,16 @@ impl Dispatch<ZwlrOutputModeV1, ()> for AppData {
     ) {
         for head in state.heads.values_mut() {
             match head.modes.get_mut(&_mode.id()) {
-                Some(res) => {
-                    match event {
-                        OutputModeEvent::Size { height, width } => {
-                            res.height = height;
-                            res.width = width;
-                        },
-                        OutputModeEvent::Refresh { refresh } => {
-                            res.rate = refresh
-                        }
-                        _ => {}
+                Some(res) => match event {
+                    OutputModeEvent::Size { height, width } => {
+                        res.height = height;
+                        res.width = width;
                     }
-                }
-                None => {
-                }
+                    OutputModeEvent::Refresh { refresh } => res.rate = refresh,
+                    OutputModeEvent::Preferred {} => res.is_preferred = true,
+                    _ => {}
+                },
+                None => {}
             }
         }
     }
