@@ -13,16 +13,22 @@ pub fn mode_command(
 pub fn list_modes(name: &str, state: AppData) {
     for head in state.heads.values() {
         if head.name == Some(name.parse().unwrap()) {
-            let mut modes_iter = head.modes.values();
-            if let Some(first) = modes_iter.next() {
-                print!("{}x{}@{:.0}", first.width, first.height, first.rate / 1000);
-                for mode in modes_iter {
-                    print!("\t{}x{}@{:.0}", mode.width, mode.height, mode.rate / 1000);
+            let mut modes: Vec<_> = head.modes.values().collect();
+            modes.sort_by(|a, b| {
+                b.height.cmp(&a.height)
+                    .then(b.width.cmp(&a.width))
+                    .then(b.rate.cmp(&a.rate))
+            });
+
+            for (i, mode) in modes.iter().enumerate() {
+                if (i == modes.len() - 1) {
+                    print!("{}x{}@{:.0}\n", mode.width, mode.height, mode.rate / 1000);
+                } else {
+                    print!("{}x{}@{:.0}\t", mode.width, mode.height, mode.rate / 1000);
                 }
             }
 
             break;
         }
     }
-    println!()
 }
