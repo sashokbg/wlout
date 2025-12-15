@@ -1,0 +1,15 @@
+version: 3
+tasks:
+  build:
+    desc: "Build"
+    cmds:
+      - cargo build
+
+  install:
+    desc: "Install"
+
+    deps:
+      - build
+    cmds:
+      - install target/debug/wlout ~/.local/bin
+

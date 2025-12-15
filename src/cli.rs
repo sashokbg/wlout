@@ -5,7 +5,7 @@ use crate::commands::off_command::off_command;
 use crate::commands::on_command::on_command;
 use crate::common::{AppData, HeadModeInput};
 use crate::parsers::RefreshRateParser;
-use clap::{value_parser, Arg, ArgAction, Command};
+use clap::{Arg, ArgAction, Command, value_parser};
 use clap_complete::aot::Shell;
 use std::collections::HashMap;
 use wayland_client::{Connection, EventQueue, QueueHandle};
@@ -88,8 +88,13 @@ fn connect_wayland_dm() -> (EventQueue<AppData>, QueueHandle<AppData>, AppData) 
 }
 
 pub fn run() {
-    let cli = build_cli();
-    let matches = cli.get_matches();
+    let matches = build_cli().get_matches();
+
+    if let Some(("completion", sub_matches)) = matches.subcommand() {
+        let mut new_cli = build_cli();
+        completion_command(sub_matches, &mut new_cli);
+        return;
+    }
 
     let (event_queue, qh, state) = connect_wayland_dm();
 
@@ -142,10 +147,6 @@ pub fn run() {
                 None => {}
                 _ => {}
             }
-        }
-        Some(("completion", _sub_matches)) => {
-            let mut new_cli = build_cli();
-            completion_command(_sub_matches, &mut new_cli)
         }
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }

@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use wayland_client::backend::ObjectId;
 
 use wayland_client::protocol::wl_registry;
-use wayland_client::{event_created_child, Connection, Dispatch, Proxy, QueueHandle};
+use wayland_client::{Connection, Dispatch, Proxy, QueueHandle, event_created_child};
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_mode_v1::Event as OutputModeEvent;
 
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_head_v1::ZwlrOutputConfigurationHeadV1;
@@ -30,7 +30,6 @@ impl Display for HeadModeInput {
         write!(f, "{}x{}@{}", self.width, self.height, self.rate)
     }
 }
-
 
 #[derive(Debug)]
 pub struct HeadInfo {

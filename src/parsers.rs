@@ -1,8 +1,8 @@
-use std::ffi::OsStr;
-use clap::builder::TypedValueParser;
-use clap::{Arg, Command, Error};
-use clap::error::{ContextKind, ContextValue, ErrorKind};
 use crate::common::HeadModeInput;
+use clap::builder::TypedValueParser;
+use clap::error::{ContextKind, ContextValue, ErrorKind};
+use clap::{Arg, Command, Error};
+use std::ffi::OsStr;
 
 #[derive(Debug, Clone, Copy)]
 pub struct RefreshRateParser {}

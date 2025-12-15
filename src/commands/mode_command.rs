@@ -1,5 +1,5 @@
-use std::process;
 use crate::common::{AppData, ConfigResult, HeadModeInput};
+use std::process;
 use wayland_client::EventQueue;
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_head_v1::ZwlrOutputConfigurationHeadV1;
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_v1::ZwlrOutputConfigurationV1;
