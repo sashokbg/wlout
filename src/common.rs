@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
 use wayland_client::backend::ObjectId;
 
 use wayland_client::protocol::wl_registry;
@@ -17,6 +18,20 @@ use wayland_protocols_wlr::output_management::v1::client::zwlr_output_manager_v1
 };
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_mode_v1::ZwlrOutputModeV1;
 
+#[derive(Clone, Debug)]
+pub struct HeadModeInput {
+    pub width: u32,
+    pub height: u32,
+    pub rate: u32,
+}
+
+impl Display for HeadModeInput {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}x{}@{}", self.width, self.height, self.rate)
+    }
+}
+
+
 #[derive(Debug)]
 pub struct HeadInfo {
     pub head: ZwlrOutputHeadV1,
@@ -28,9 +43,10 @@ pub struct HeadInfo {
 
 #[derive(Debug)]
 pub struct HeadMode {
-    pub height: i32,
-    pub width: i32,
-    pub rate: i32,
+    pub mode: ZwlrOutputModeV1,
+    pub height: u32,
+    pub width: u32,
+    pub rate: u32,
     pub is_preferred: bool,
     pub is_current: bool,
 }
@@ -159,9 +175,10 @@ impl Dispatch<ZwlrOutputHeadV1, ()> for AppData {
                     current_head.modes.insert(
                         mode.id(),
                         HeadMode {
-                            rate: -1,
-                            height: -1,
-                            width: -1,
+                            mode: mode.clone(),
+                            rate: 0,
+                            height: 0,
+                            width: 0,
                             is_preferred: false,
                             is_current: false,
                         },
@@ -190,10 +207,10 @@ impl Dispatch<ZwlrOutputModeV1, ()> for AppData {
             match head.modes.get_mut(&_mode.id()) {
                 Some(res) => match event {
                     OutputModeEvent::Size { height, width } => {
-                        res.height = height;
-                        res.width = width;
+                        res.height = height as u32;
+                        res.width = width as u32;
                     }
-                    OutputModeEvent::Refresh { refresh } => res.rate = refresh,
+                    OutputModeEvent::Refresh { refresh } => res.rate = refresh as u32 / 1000,
                     OutputModeEvent::Preferred {} => res.is_preferred = true,
                     _ => {}
                 },
