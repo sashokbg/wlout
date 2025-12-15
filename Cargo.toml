@@ -1,12 +1,10 @@
 [package]
-name = "wayland_cli"
-version = "0.1.0"
+name = "wlout"
+version = "0.0.1"
 edition = "2024"
 
 [dependencies]
 wayland-client = "0.31.11"
-wayland-protocols = { version = "0.32.9", features = ["unstable"] }
-wayland-protocols-wlr = {version = "0.3.9", features=["client"]}
-log = "0.4.29"
+wayland-protocols-wlr = { version = "0.3.9", features = ["client"] }
 clap = { version = "4.5.53", features = ["derive"] }
-commands = "0.0.5"
+clap_complete = "4.5.61"
