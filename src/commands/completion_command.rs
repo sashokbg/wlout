@@ -27,7 +27,8 @@ _wlout_list_displays() {
     local output
     local -a displays
     output=$(command wlout list 2>/dev/null) || return 0
-    displays=(${(s:\n:)${${output//$'\t'/$'\n'}}})
+    # Split on any whitespace (tabs/newlines) to get individual display names.
+    displays=(${=output})
     (( ${#displays[@]} )) && compadd -- "${displays[@]}"
 }
 
@@ -35,31 +36,38 @@ _wlout_list_modes() {
     local display_name output
     local -a modes
 
-    # Debug: hardcoded entry to confirm invocation.
-    compadd -- "$display_name"
+    # Parse the raw command line instead of `words`, which is rewritten by `_arguments`.
+    local -a cmdline
+    cmdline=("${(z)BUFFER}")
 
-    # Find display name from argv (`words`), handles `--name X`, `--name=X`, `-n X`, `-nX`.
-    for (( i=1; i<${#words[@]}; ++i )); do
-        case ${words[i]} in
-            --name)
-                display_name=${words[i+1]}
-                ;;
-            --name=*)
-                display_name=${words[i]#--name=}
-                ;;
-            -n)
-                display_name=${words[i+1]}
-                ;;
-            -n*)
-                display_name=${words[i]#-n}
-                ;;
-        esac
+    # CLI shape is `wlout mode <display> set <mode>`.
+    # Grab the first non-flag argument after `mode` and before the subcommand.
+    for (( i=1; i<=${#cmdline[@]}; ++i )); do
+        if [[ ${cmdline[i]} == "mode" ]]; then
+            for (( j=i+1; j<=${#cmdline[@]}; ++j )); do
+                case ${cmdline[j]} in
+                    set|list|current|help)
+                        break
+                        ;;
+                    -*)
+                        continue
+                        ;;
+                    *)
+                        display_name=${cmdline[j]}
+                        break
+                        ;;
+                esac
+            done
+        fi
+
+        [[ -n $display_name ]] && break
     done
 
     [[ -z $display_name ]] && return 0
 
-    output=$(command wlout mode list --name "$display_name" 2>/dev/null) || return 0
-    modes=(${(s:\n:)${${output//$'\t'/$'\n'}}})
+    output=$(command wlout mode "$display_name" list 2>/dev/null) || return 0
+    # Modes are whitespace separated, split them and add as completions.
+    modes=(${=output})
 
     (( ${#modes[@]} )) && compadd -- "${modes[@]}"
 }
@@ -67,12 +75,12 @@ _wlout_list_modes() {
         );
 
         script = script.replace(
-            "[The name of the display]: :_default",
-            "[The name of the display]:display name:_wlout_list_displays",
+            ":display -- The name of the display:_default",
+            ":display -- The name of the display:_wlout_list_displays",
         );
         script = script.replace(
-            "[The mode format is <WIDTH>x<HEIGHT>@<RATE>]: :_default",
-            "[The mode format is <WIDTH>x<HEIGHT>@<RATE>]:display mode:_wlout_list_modes",
+            "::mode -- The mode format is <WIDTH>x<HEIGHT>@<RATE>:_default",
+            "::mode -- The mode format is <WIDTH>x<HEIGHT>@<RATE>:_wlout_list_modes",
         );
 
         buf.write_all(script.as_bytes())

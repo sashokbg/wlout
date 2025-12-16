@@ -1,20 +1,21 @@
 use crate::commands::completion_command::completion_command;
 use crate::commands::list_command::list_command;
-use crate::commands::mode_command::{mode_list_command, mode_set_command};
-use crate::commands::off_command::off_command;
-use crate::commands::on_command::on_command;
+use crate::commands::mode_command::{mode_current_command, mode_list_command, mode_set_command};
+use crate::commands::power_command::{off_command, on_command};
 use crate::common::{AppData, HeadModeInput};
-use crate::parsers::RefreshRateParser;
-use clap::{Arg, ArgAction, Command, value_parser};
+use crate::parsers::DisplayModeParser;
+use clap::{value_parser, Arg, ArgAction, Command};
 use clap_complete::aot::Shell;
 use std::collections::HashMap;
+use std::process::exit;
 use wayland_client::{Connection, EventQueue, QueueHandle};
 
+static NAME_ARG_ID: &str = "display";
+
 fn build_cli() -> Command {
-    let name_arg = Arg::new("name")
-        .help("The name of the display")
-        .short('n')
-        .long("name");
+    let display_arg = Arg::new(NAME_ARG_ID)
+        .required(true)
+        .help("The name of the display");
 
     Command::new("wlout")
         .version("1.0")
@@ -39,27 +40,35 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                 ),
         )
         .subcommand(
-            Command::new("off")
-                .about("Turn a display off")
-                .arg(&name_arg),
+            Command::new("power")
+                .about("Turn a display on or off")
+                .arg_required_else_help(true)
+                .arg(display_arg.clone())
+                .arg(Arg::new("power_mode")
+                         .required(true)
+                         .action(ArgAction::Set)
+                         .value_parser(clap::builder::PossibleValuesParser::new(
+                             ["on", "off"]
+                         ),),
+                )
         )
-        .subcommand(Command::new("on").about("Turn a display on").arg(&name_arg))
         .subcommand(
             Command::new("mode")
                 .about("Manage the display mode resolution and refresh rate")
-                .arg_required_else_help(true)
-                .arg(&name_arg.clone().global(true))
-                .subcommand(Command::new("list").about("List the available mods for a display"))
-                .subcommand(
-                    Command::new("set").about("Set the mode for a display").arg(
+                .arg(display_arg.clone())
+                .subcommand(Command::new("list")
+                    .about("List the available modes for a display"))
+                .subcommand(Command::new("current")
+                    .about("Show the current mode for this display"))
+                .subcommand(Command::new("set")
+                    .arg_required_else_help(true)
+                    .about("Set the resolution and refresh rate for the display")
+                    .arg(
                         Arg::new("mode")
                             .help("The mode format is <WIDTH>x<HEIGHT>@<RATE>")
-                            .required(true)
-                            .long("mode")
-                            .short('m')
-                            .value_parser(RefreshRateParser {}),
-                    ),
-                ),
+                            .value_parser(DisplayModeParser {}),
+                    )
+                )
         )
         .subcommand(Command::new("list").about("List displays"))
 }
@@ -99,55 +108,60 @@ pub fn run() {
     let (event_queue, qh, state) = connect_wayland_dm();
 
     match matches.subcommand() {
-        Some(("list", _sub_matches)) => list_command(state),
-        Some(("off", _sub_matches)) => {
-            let name = _sub_matches
-                .get_one::<String>("name")
-                .expect("--name is required`");
+        Some(("power", sub_matches)) => {
+            let name = sub_matches
+                .get_one::<String>(NAME_ARG_ID)
+                .expect(format!("{} is required", NAME_ARG_ID).as_str());
+
+            let power_mode = sub_matches.get_one::<String>("power_mode").unwrap();
 
             let manager = state.manager.as_ref().expect("output manager not bound");
             let serial: u32 = state.config_serial.unwrap();
             let configuration = manager.create_configuration(serial, &qh, ());
 
-            off_command(name, state, configuration, event_queue)
+            match power_mode.as_str() {
+                "on" => on_command(name, state, configuration, event_queue),
+                "off" => off_command(name, state, configuration, event_queue),
+                &_ => {
+                    eprintln!("Power mode should be on / off");
+                    exit(1);
+                }
+            }
         }
-        Some(("on", _sub_matches)) => {
-            let name = _sub_matches
-                .get_one::<String>("name")
-                .expect("--name is required`");
-            let manager = state.manager.as_ref().expect("output manager not bound");
-            let serial: u32 = state.config_serial.unwrap();
-            let configuration = manager.create_configuration(serial, &qh, ());
-
-            on_command(name, state, configuration, event_queue)
+        Some(("list", _)) => {
+            list_command(state);
         }
-        Some(("mode", _sub_matches)) => {
+        Some(("mode", sub_matches)) => {
+            let name = sub_matches
+                .get_one::<String>(NAME_ARG_ID)
+                .expect(format!("{} is required", NAME_ARG_ID).as_str());
+
             let manager = state.manager.as_ref().expect("output manager not bound");
             let serial: u32 = state.config_serial.unwrap();
             let configuration = manager.create_configuration(serial, &qh, ());
 
-            match _sub_matches.subcommand() {
-                Some(("list", _sub_sub_command)) => {
-                    let name = _sub_matches
-                        .get_one::<String>("name")
-                        .expect("--name is required");
+            match sub_matches.subcommand() {
+                Some(("current", _)) => {
+                    mode_current_command(name, state);
+                }
+                Some(("list", _)) => {
                     mode_list_command(name, state);
                 }
-                Some(("set", _sub_sub_command)) => {
-                    let name = _sub_matches
-                        .get_one::<String>("name")
-                        .expect("--name is required");
-                    match _sub_sub_command.get_one::<HeadModeInput>("mode") {
+                Some(("set", sub_sub_matches)) => {
+                    match sub_sub_matches.get_one::<HeadModeInput>("mode") {
                         Some(mode) => {
                             mode_set_command(name, mode, state, configuration, event_queue)
                         }
                         None => {}
                     }
                 }
-                None => {}
-                _ => {}
+                None => {
+                    mode_list_command(name, state);
+                }
+                Some((&_, _)) => todo!(),
             }
         }
+        None => list_command(state),
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }
 }

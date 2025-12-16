@@ -5,9 +5,9 @@ use clap::{Arg, Command, Error};
 use std::ffi::OsStr;
 
 #[derive(Debug, Clone, Copy)]
-pub struct RefreshRateParser {}
+pub struct DisplayModeParser {}
 
-impl TypedValueParser for RefreshRateParser {
+impl TypedValueParser for DisplayModeParser {
     type Value = HeadModeInput;
 
     fn parse_ref(

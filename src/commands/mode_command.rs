@@ -4,6 +4,26 @@ use wayland_client::EventQueue;
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_head_v1::ZwlrOutputConfigurationHeadV1;
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_v1::ZwlrOutputConfigurationV1;
 
+pub fn mode_current_command(name: &str, state: AppData) {
+    let target_head = state
+        .heads
+        .values()
+        .find(|head| head.name.as_deref() == Some(name))
+        .expect(&*format!("Display \"{}\" not found", name));
+
+    let mode = target_head
+        .modes
+        .values()
+        .find(|m| m.is_current)
+        .expect(&*format!(
+            "No current mode not found on display {}. It is probably off",
+            name
+        ));
+
+    let string_result = format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate);
+    println!("{}", string_result)
+}
+
 pub fn mode_set_command(
     name: &str,
     mode: &HeadModeInput,
@@ -66,8 +86,7 @@ pub fn mode_list_command(name: &str, state: AppData) {
             });
 
             for (i, mode) in modes.iter().enumerate() {
-                let mut string_result =
-                    format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate / 1000);
+                let mut string_result = format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate);
 
                 if mode.is_current || mode.is_preferred {
                     string_result += "(";
