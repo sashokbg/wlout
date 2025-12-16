@@ -9,6 +9,7 @@ Usage
 | Display Info      | `wlout info <display>`                       | Prints additional info about the display (serial, manufacturer, etc.)     |      |
 | Mode list         | `wlout mode <display> list`                  | Lists available modes for this display                                    | Y    |
 | Mode list         | `wlout mode <display> current`               | Get the current display mode for this display                             | Y    |
+| Mode list         | `wlout mode <display> preferred`             | Get the preferred advertised display mode for this display                | Y    |
 | Mode set          | `wlout mode <display> set <mode>`            | Sets the current mode                                                     | Y    |
 | Move left         | `wlout move <display> left <other display>`  | Moves the display to the left of another display                          |      |
 | Move right        | `wlout move <display> right <other display>` | Moves the display to the right of another display                         |      |

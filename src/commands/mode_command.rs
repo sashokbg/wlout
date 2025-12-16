@@ -24,6 +24,26 @@ pub fn mode_current_command(name: &str, state: AppData) {
     println!("{}", string_result)
 }
 
+pub fn mode_preferred_command(name: &str, state: AppData) {
+    let target_head = state
+        .heads
+        .values()
+        .find(|head| head.name.as_deref() == Some(name))
+        .expect(&*format!("Display \"{}\" not found", name));
+
+    let mode = target_head
+        .modes
+        .values()
+        .find(|m| m.is_preferred)
+        .expect(&*format!(
+            "No preferred mode not found on display {}.",
+            name
+        ));
+
+    let string_result = format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate);
+    println!("{}", string_result)
+}
+
 pub fn mode_set_command(
     name: &str,
     mode: &HeadModeInput,

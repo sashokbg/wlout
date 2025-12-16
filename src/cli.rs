@@ -1,6 +1,6 @@
 use crate::commands::completion_command::completion_command;
 use crate::commands::list_command::list_command;
-use crate::commands::mode_command::{mode_current_command, mode_list_command, mode_set_command};
+use crate::commands::mode_command::{mode_current_command, mode_list_command, mode_preferred_command, mode_set_command};
 use crate::commands::power_command::{off_command, on_command};
 use crate::common::{AppData, HeadModeInput};
 use crate::parsers::DisplayModeParser;
@@ -60,6 +60,8 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                     .about("List the available modes for a display"))
                 .subcommand(Command::new("current")
                     .about("Show the current mode for this display"))
+                .subcommand(Command::new("preferred")
+                    .about("Show the advertised preferred mode for this display"))
                 .subcommand(Command::new("set")
                     .arg_required_else_help(true)
                     .about("Set the resolution and refresh rate for the display")
@@ -143,6 +145,9 @@ pub fn run() {
             match sub_matches.subcommand() {
                 Some(("current", _)) => {
                     mode_current_command(name, state);
+                }
+                Some(("preferred", _)) => {
+                    mode_preferred_command(name, state);
                 }
                 Some(("list", _)) => {
                     mode_list_command(name, state);
