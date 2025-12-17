@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use wayland_client::backend::ObjectId;
 
 use wayland_client::protocol::wl_registry;
-use wayland_client::{Connection, Dispatch, Proxy, QueueHandle, event_created_child};
+use wayland_client::{event_created_child, Connection, Dispatch, Proxy, QueueHandle};
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_mode_v1::Event as OutputModeEvent;
 
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_head_v1::ZwlrOutputConfigurationHeadV1;
@@ -38,6 +38,8 @@ pub struct HeadInfo {
     pub description: Option<String>,
     pub serial: Option<String>,
     pub modes: HashMap<ObjectId, HeadMode>,
+    pub position_x: Option<i32>,
+    pub position_y: Option<i32>,
 }
 
 #[derive(Debug)]
@@ -74,6 +76,8 @@ impl HeadInfo {
             serial: None,
             head,
             modes: HashMap::new(),
+            position_x: None,
+            position_y: None,
         }
     }
 }
@@ -166,6 +170,10 @@ impl Dispatch<ZwlrOutputHeadV1, ()> for AppData {
             HeadEvent::Name { name } => current_head.name = Some(name),
             HeadEvent::SerialNumber { serial_number } => current_head.serial = Some(serial_number),
             HeadEvent::Description { description } => current_head.description = Some(description),
+            HeadEvent::Position { x, y } => {
+                current_head.position_x = Some(x);
+                current_head.position_y = Some(y)
+            }
             HeadEvent::CurrentMode { mode } => {
                 current_head.modes.get_mut(&mode.id()).unwrap().is_current = true
             }

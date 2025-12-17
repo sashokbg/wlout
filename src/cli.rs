@@ -1,6 +1,9 @@
 use crate::commands::completion_command::completion_command;
 use crate::commands::list_command::list_command;
-use crate::commands::mode_command::{mode_current_command, mode_list_command, mode_preferred_command, mode_set_command};
+use crate::commands::mode_command::{
+    mode_current_command, mode_list_command, mode_preferred_command, mode_set_command,
+};
+use crate::commands::move_command::move_command;
 use crate::commands::power_command::{off_command, on_command};
 use crate::common::{AppData, HeadModeInput};
 use crate::parsers::DisplayModeParser;
@@ -51,6 +54,33 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                              ["on", "off"]
                          ),),
                 )
+        )
+        .subcommand(
+            Command::new("move")
+                .about("Set the position of the display in the global compositor space")
+                .subcommand_required(true)
+                .arg(display_arg.clone())
+                .subcommand(
+                    Command::new("position")
+                        .about("Move the display to an absolute position defined by x and y coordinates on the global compositor space")
+                        .arg(
+                            Arg::new("x")
+                                .required(true)
+                                .help("x - coordinate")
+                                .value_parser(
+                                    value_parser!(i32)
+                                )
+                        )
+                        .arg(
+                            Arg::new("y")
+                                .required(true)
+                                .help("y - coordinate")
+                                .value_parser(
+                                    value_parser!(i32)
+                                )
+                        )
+                )
+
         )
         .subcommand(
             Command::new("mode")
@@ -132,6 +162,34 @@ pub fn run() {
         }
         Some(("list", _)) => {
             list_command(state);
+        }
+        Some(("move", sub_matches)) => {
+            let name = sub_matches
+                .get_one::<String>(NAME_ARG_ID)
+                .expect(format!("{} is required", NAME_ARG_ID).as_str());
+
+            let sub_sub_matches = sub_matches.subcommand();
+            match sub_sub_matches {
+                Some(("position", sub_sub_sub_matches)) => {
+                    let x = sub_sub_sub_matches.get_one::<i32>("x").unwrap();
+                    let y = sub_sub_sub_matches.get_one::<i32>("y").unwrap();
+
+                    let manager = state.manager.as_ref().expect("output manager not bound");
+                    let serial: u32 = state.config_serial.unwrap();
+                    let configuration = manager.create_configuration(serial, &qh, ());
+
+                    move_command(
+                        name,
+                        x.clone(),
+                        y.clone(),
+                        state,
+                        configuration,
+                        event_queue,
+                    );
+                }
+                None => todo!(),
+                Some((&_, _)) => todo!(),
+            }
         }
         Some(("mode", sub_matches)) => {
             let name = sub_matches
