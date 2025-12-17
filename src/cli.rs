@@ -103,7 +103,14 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                     )
                 )
         )
-        .subcommand(Command::new("list").about("List displays"))
+        .subcommand(Command::new("list")
+            .arg(Arg::new("verbose")
+                     .help("Turn on verbose / detailed mode")
+                     .long("verbose")
+                     .short('v')
+                     .action(clap::ArgAction::SetTrue),
+            )
+            .about("List displays"))
         .subcommand(Command::new("info")
             .about("Print additional detailed information for a display")
             .arg_required_else_help(true)
@@ -166,8 +173,9 @@ pub fn run() {
                 }
             }
         }
-        Some(("list", _)) => {
-            list_command(state);
+        Some(("list", sub_matches)) => {
+            let verbose = sub_matches.get_one::<bool>("verbose").unwrap();
+            list_command(state, verbose.clone());
         }
         Some(("info", sub_matches)) => {
             let name = sub_matches
@@ -237,7 +245,10 @@ pub fn run() {
                 Some((&_, _)) => todo!(),
             }
         }
-        None => list_command(state),
+        None => {
+            let verbose = matches.get_one::<bool>("verbose").unwrap();
+            list_command(state, verbose.clone())
+        },
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }
 }

@@ -2,8 +2,9 @@ use crate::common::HeadInfo;
 use std::io::Write;
 use tabwriter::TabWriter;
 
-pub fn print_heads_detail(heads: Vec<&HeadInfo>) {
+pub fn print_heads_detail(heads: Vec<HeadInfo>) {
     let mut tw = TabWriter::new(vec![]);
+    let mut string_result = String::from("Name\tEnabled\tMake\tModel\tPhysical Size\tPosition");
 
     for head in heads {
         let phys_size_str;
@@ -28,28 +29,20 @@ pub fn print_heads_detail(heads: Vec<&HeadInfo>) {
                 head.position_y.unwrap()
             )
         }
-
-        write!(
-            &mut tw,
-            "{}",
-            format!(
-                "
-Name\tEnabled\tMake\tModel\tPhysical Size\tPosition
-{}\t{}\t{}\t{}\t{}\t{}
-    ",
-                head.name.clone().unwrap(),
-                head.enabled,
-                head.make.clone().or(Some(String::from("N/A"))).unwrap(),
-                head.model.clone().or(Some(String::from("N/A"))).unwrap(),
-                phys_size_str,
-                position_str
-            )
-        )
-        .unwrap();
-
-        tw.flush().unwrap();
+        string_result += format!(
+            "\n{}\t{}\t{}\t{}\t{}\t{}",
+            head.name.clone().unwrap(),
+            head.enabled,
+            head.make.clone().or(Some(String::from("N/A"))).unwrap(),
+            head.model.clone().or(Some(String::from("N/A"))).unwrap(),
+            phys_size_str,
+            position_str
+        ).as_str()
     }
 
+    write!(&mut tw, "{}", string_result).unwrap();
+
+    tw.flush().unwrap();
     let written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
     println!("{}", written);
 }
