@@ -3,6 +3,7 @@ mod parsers;
 
 mod cli;
 mod commands;
+mod head_printer;
 
 use crate::cli::run;
 

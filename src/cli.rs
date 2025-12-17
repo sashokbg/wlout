@@ -1,4 +1,5 @@
 use crate::commands::completion_command::completion_command;
+use crate::commands::info_command::info_command;
 use crate::commands::list_command::list_command;
 use crate::commands::mode_command::{
     mode_current_command, mode_list_command, mode_preferred_command, mode_set_command,
@@ -103,6 +104,11 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                 )
         )
         .subcommand(Command::new("list").about("List displays"))
+        .subcommand(Command::new("info")
+            .about("Print additional detailed information for a display")
+            .arg_required_else_help(true)
+            .arg(display_arg.clone())
+        )
 }
 
 fn connect_wayland_dm() -> (EventQueue<AppData>, QueueHandle<AppData>, AppData) {
@@ -162,6 +168,13 @@ pub fn run() {
         }
         Some(("list", _)) => {
             list_command(state);
+        }
+        Some(("info", sub_matches)) => {
+            let name = sub_matches
+                .get_one::<String>(NAME_ARG_ID)
+                .expect(format!("{} is required", NAME_ARG_ID).as_str());
+
+            info_command(name, state);
         }
         Some(("move", sub_matches)) => {
             let name = sub_matches

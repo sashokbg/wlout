@@ -3,6 +3,9 @@
 This CLI tool's job is to manage displays (heads) on Wayland compositors that use the Wayland Protocols.   
 It uses the still unstable "wlr_output_management_unstable_v1" so things are subjected to changes at any time.
 
+Compatible with sway, hyprland and should work with other compositors using wlroots:  
+https://github.com/solarkraft/awesome-wlroots?tab=readme-ov-file#compositors
+
 It is written in Rust and depends on the following packages:
 
 - wayland-client
@@ -15,8 +18,7 @@ https://gitlab.freedesktop.org/wayland/wayland-protocols
 
 ## Philosophy & Features
 
-
-- The tool's goal is to be a successor of the popular `xrandr` (tool for x11) and `wlr-randr` tools, but modernizing them.
+- The tool's goal is to be a successor of the popular `xrandr` (tool for x11) and `wlr-randr` tools, but with some modernization.
 - Autocomplete is a first-class citizen
 - Quality of life features like verifications when turning off last display etc
 

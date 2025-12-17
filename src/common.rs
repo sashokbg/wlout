@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use wayland_client::backend::ObjectId;
 
+use wayland_client::protocol::wl_output::Transform;
 use wayland_client::protocol::wl_registry;
 use wayland_client::{event_created_child, Connection, Dispatch, Proxy, QueueHandle};
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_mode_v1::Event as OutputModeEvent;
@@ -11,7 +12,7 @@ use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configurat
     Event as ConfigurationEvent, ZwlrOutputConfigurationV1,
 };
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_head_v1::{
-    self, Event as HeadEvent, ZwlrOutputHeadV1,
+    self, AdaptiveSyncState, Event as HeadEvent, ZwlrOutputHeadV1,
 };
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_manager_v1::{
     self, Event as ManagerEvent, ZwlrOutputManagerV1,
@@ -40,6 +41,14 @@ pub struct HeadInfo {
     pub modes: HashMap<ObjectId, HeadMode>,
     pub position_x: Option<i32>,
     pub position_y: Option<i32>,
+    pub model: Option<String>,
+    pub make: Option<String>,
+    pub physical_width: Option<i32>,
+    pub physical_height: Option<i32>,
+    pub transform: Option<Transform>,
+    pub scale: Option<f64>,
+    pub adaptive_sync: Option<AdaptiveSyncState>,
+    pub enabled: bool
 }
 
 #[derive(Debug)]
@@ -78,6 +87,14 @@ impl HeadInfo {
             modes: HashMap::new(),
             position_x: None,
             position_y: None,
+            adaptive_sync: None,
+            transform: None,
+            model: None,
+            scale: None,
+            physical_height: None,
+            physical_width: None,
+            make: None,
+            enabled: false
         }
     }
 }
@@ -176,6 +193,27 @@ impl Dispatch<ZwlrOutputHeadV1, ()> for AppData {
             }
             HeadEvent::CurrentMode { mode } => {
                 current_head.modes.get_mut(&mode.id()).unwrap().is_current = true
+            }
+            HeadEvent::Make { make } => current_head.make = Some(make),
+            HeadEvent::Model { model } => current_head.model = Some(model),
+            HeadEvent::PhysicalSize { width, height } => {
+                current_head.physical_width = Some(width);
+                current_head.physical_height = Some(height)
+            }
+            HeadEvent::Transform { transform } => {
+                let result = transform.into_result();
+                let opt: Option<Transform> = result.ok();
+
+                current_head.transform = opt
+            }
+            HeadEvent::Scale { scale } => current_head.scale = Some(scale),
+            HeadEvent::Enabled { enabled } => {
+                current_head.enabled = enabled == 1;
+            }
+            HeadEvent::AdaptiveSync { state } => {
+                let result = state.into_result();
+                let opt = result.ok();
+                current_head.adaptive_sync = opt
             }
             HeadEvent::Mode { mode } => {
                 if !current_head.modes.contains_key(&mode.id()) {
