@@ -48,7 +48,7 @@ pub struct HeadInfo {
     pub transform: Option<Transform>,
     pub scale: Option<f64>,
     pub adaptive_sync: Option<AdaptiveSyncState>,
-    pub enabled: bool
+    pub enabled: bool,
 }
 
 #[derive(Debug)]
@@ -59,6 +59,12 @@ pub struct HeadMode {
     pub rate: u32,
     pub is_preferred: bool,
     pub is_current: bool,
+}
+
+impl Display for HeadMode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}x{}@{}", self.width, self.height, self.rate)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -94,8 +100,12 @@ impl HeadInfo {
             physical_height: None,
             physical_width: None,
             make: None,
-            enabled: false
+            enabled: false,
         }
+    }
+
+    pub fn get_current_mode(&self) -> Option<&HeadMode> {
+        self.modes.values().find(|m| m.is_current)
     }
 }
 

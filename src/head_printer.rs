@@ -4,7 +4,7 @@ use tabwriter::TabWriter;
 
 pub fn print_heads_detail(heads: Vec<HeadInfo>) {
     let mut tw = TabWriter::new(vec![]);
-    let mut string_result = String::from("Name\tEnabled\tMake\tModel\tPhysical Size\tPosition");
+    let mut string_result = String::from("Name\tEnabled\tCurrent Mode\tMake\tModel\tPhysical Size\tPosition");
 
     for head in heads {
         let phys_size_str;
@@ -29,10 +29,23 @@ pub fn print_heads_detail(heads: Vec<HeadInfo>) {
                 head.position_y.unwrap()
             )
         }
+
+
+        let current_mode_str;
+
+        let mode = head.get_current_mode();
+
+        if mode.is_none() {
+            current_mode_str = String::from("N/A")
+        } else {
+            current_mode_str = format!("{}", mode.unwrap())
+        }
+
         string_result += format!(
-            "\n{}\t{}\t{}\t{}\t{}\t{}",
+            "\n{}\t{}\t{}\t{}\t{}\t{}\t{}",
             head.name.clone().unwrap(),
             head.enabled,
+            current_mode_str,
             head.make.clone().or(Some(String::from("N/A"))).unwrap(),
             head.model.clone().or(Some(String::from("N/A"))).unwrap(),
             phys_size_str,
