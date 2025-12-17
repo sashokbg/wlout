@@ -33,15 +33,18 @@ It is based on the still experimental wlr-output-management-unstable-v1 protocol
 For more information please visit: https://wayland.app/protocols/wlr-output-management-unstable-v1
         ")
         .arg_required_else_help(true)
-        .subcommand(
-            Command::new("completion")
-                .about("Generate shell completion script")
-                .arg(
-                    Arg::new("shell")
-                        .required(true)
-                        .action(ArgAction::Set)
-                        .value_parser(value_parser!(Shell)),
-                ),
+        .subcommand(Command::new("list")
+            .arg(Arg::new("verbose")
+                     .help("Turn on verbose / detailed mode")
+                     .long("verbose")
+                     .short('v')
+                     .action(clap::ArgAction::SetTrue),
+            )
+            .about("List displays"))
+        .subcommand(Command::new("info")
+            .about("Print additional detailed information for a display")
+            .arg_required_else_help(true)
+            .arg(display_arg.clone())
         )
         .subcommand(
             Command::new("power")
@@ -103,18 +106,15 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                     )
                 )
         )
-        .subcommand(Command::new("list")
-            .arg(Arg::new("verbose")
-                     .help("Turn on verbose / detailed mode")
-                     .long("verbose")
-                     .short('v')
-                     .action(clap::ArgAction::SetTrue),
-            )
-            .about("List displays"))
-        .subcommand(Command::new("info")
-            .about("Print additional detailed information for a display")
-            .arg_required_else_help(true)
-            .arg(display_arg.clone())
+        .subcommand(
+            Command::new("completion")
+                .about("Generate shell completion script")
+                .arg(
+                    Arg::new("shell")
+                        .required(true)
+                        .action(ArgAction::Set)
+                        .value_parser(value_parser!(Shell)),
+                ),
         )
 }
 

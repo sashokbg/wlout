@@ -51,7 +51,7 @@ Unix philosophy
 | List all displays | `wlout list`                                 | Prints all available displays                                             | Y           |
 | Turn on           | `wlout power <display> on`                   | Turns on the display with last config                                     | Y           |
 | Turn off          | `wlout power <display> off`                  | Turns off the display                                                     | Y           |
-| Display Info      | `wlout info <display>`                       | Prints additional info about the display (serial, manufacturer, etc.)     |             |
+| Display Info      | `wlout info <display>`                       | Prints additional info about the display (serial, manufacturer, etc.)     | Y           |
 | Mode list         | `wlout mode <display> list`                  | Lists available modes for this display                                    | Y           |
 | Mode list         | `wlout mode <display> current`               | Get the current display mode for this display                             | Y           |
 | Mode list         | `wlout mode <display> preferred`             | Get the preferred advertised display mode for this display                | Y           |
