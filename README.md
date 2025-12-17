@@ -15,14 +15,19 @@ https://gitlab.freedesktop.org/wayland/wayland-protocols
 
 ## Philosophy & Features
 
+
 - The tool's goal is to be a successor of the popular `xrandr` (tool for x11) and `wlr-randr` tools, but modernizing them.
 - Autocomplete is a first-class citizen
-- Self-explorable, self-documented
+- Quality of life features like verifications when turning off last display etc
 
 Unix philosophy
 - Doing only one thing per command
 - Parsable outputs
 - Standard cli shape, no flags soup
+- Self-explorable
+- Self-documented
+
+![video](./video.gif)
 
 ## Usage
 
