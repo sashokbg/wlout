@@ -4,7 +4,10 @@ use crate::commands::list_command::list_command;
 use crate::commands::mode_command::{
     mode_current_command, mode_list_command, mode_preferred_command, mode_set_command,
 };
-use crate::commands::move_command::move_command;
+use crate::commands::move_command::{
+    move_command, move_relative_command, REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF,
+    REL_POS_RIGHT_OF,
+};
 use crate::commands::power_command::{off_command, on_command};
 use crate::common::{AppData, HeadModeInput};
 use crate::parsers::DisplayModeParser;
@@ -65,8 +68,44 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                 .subcommand_required(true)
                 .arg(display_arg.clone())
                 .subcommand(
+                    Command::new("above")
+                        .about("Move the display above another display")
+                        .arg(
+                            Arg::new("other_display")
+                                .required(true)
+                                .help("Other display")
+                        )
+                )
+                .subcommand(
+                    Command::new("below")
+                        .about("Move the display below another display")
+                        .arg(
+                            Arg::new("other_display")
+                                .required(true)
+                                .help("Other display")
+                        )
+                )
+                .subcommand(
+                    Command::new("right-of")
+                        .about("Move the display right-of another display")
+                        .arg(
+                            Arg::new("other_display")
+                                .required(true)
+                                .help("Other display")
+                        )
+                )
+                .subcommand(
+                    Command::new("left-of")
+                        .about("Move the display left-of another display")
+                        .arg(
+                            Arg::new("other_display")
+                                .required(true)
+                                .help("Other display")
+                        )
+                )
+                .subcommand(
                     Command::new("position")
-                        .about("Move the display to an absolute position defined by x and y coordinates on the global compositor space")
+                        .about("Move the display to an absolute position defined by x and y coordinates on the global compositor space.\nPlease mind that the origin (0, 0) is top left")
                         .arg(
                             Arg::new("x")
                                 .required(true)
@@ -150,7 +189,7 @@ pub fn run() {
         return;
     }
 
-    let (event_queue, qh, state) = connect_wayland_dm();
+    let (event_queue, qh, mut state) = connect_wayland_dm();
 
     match matches.subcommand() {
         Some(("power", sub_matches)) => {
@@ -191,22 +230,79 @@ pub fn run() {
 
             let sub_sub_matches = sub_matches.subcommand();
             match sub_sub_matches {
+                Some((REL_POS_ABOVE, sub_sub_sub_matches)) => {
+                    let other_display = sub_sub_sub_matches
+                        .get_one::<String>("other_display")
+                        .unwrap();
+                    if name == other_display {
+                        eprintln!("The second display must be different !");
+                        exit(1);
+                    }
+
+                    move_relative_command(
+                        name,
+                        other_display,
+                        REL_POS_ABOVE,
+                        &mut state,
+                        event_queue,
+                    );
+                }
+                Some((REL_POS_BELOW, sub_sub_sub_matches)) => {
+                    let other_display = sub_sub_sub_matches
+                        .get_one::<String>("other_display")
+                        .unwrap();
+                    if name == other_display {
+                        eprintln!("The second display must be different !");
+                        exit(1);
+                    }
+
+                    move_relative_command(
+                        name,
+                        other_display,
+                        REL_POS_BELOW,
+                        &mut state,
+                        event_queue,
+                    );
+                }
+                Some(("right-of", sub_sub_sub_matches)) => {
+                    let other_display = sub_sub_sub_matches
+                        .get_one::<String>("other_display")
+                        .unwrap();
+                    if name == other_display {
+                        eprintln!("The second display must be different !");
+                        exit(1);
+                    }
+
+                    move_relative_command(
+                        name,
+                        other_display,
+                        REL_POS_RIGHT_OF,
+                        &mut state,
+                        event_queue,
+                    );
+                }
+                Some(("left-of", sub_sub_sub_matches)) => {
+                    let other_display = sub_sub_sub_matches
+                        .get_one::<String>("other_display")
+                        .unwrap();
+                    if name == other_display {
+                        eprintln!("The second display must be different !");
+                        exit(1);
+                    }
+
+                    move_relative_command(
+                        name,
+                        other_display,
+                        REL_POS_LEFT_OF,
+                        &mut state,
+                        event_queue,
+                    );
+                }
                 Some(("position", sub_sub_sub_matches)) => {
                     let x = sub_sub_sub_matches.get_one::<i32>("x").unwrap();
                     let y = sub_sub_sub_matches.get_one::<i32>("y").unwrap();
 
-                    let manager = state.manager.as_ref().expect("output manager not bound");
-                    let serial: u32 = state.config_serial.unwrap();
-                    let configuration = manager.create_configuration(serial, &qh, ());
-
-                    move_command(
-                        name,
-                        x.clone(),
-                        y.clone(),
-                        state,
-                        configuration,
-                        event_queue,
-                    );
+                    move_command(name, x.clone(), y.clone(), state, event_queue);
                 }
                 None => todo!(),
                 Some((&_, _)) => todo!(),
@@ -248,7 +344,7 @@ pub fn run() {
         None => {
             let verbose = matches.get_one::<bool>("verbose").unwrap();
             list_command(state, verbose.clone())
-        },
+        }
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }
 }

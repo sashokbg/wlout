@@ -21,9 +21,9 @@ use wayland_protocols_wlr::output_management::v1::client::zwlr_output_mode_v1::Z
 
 #[derive(Clone, Debug)]
 pub struct HeadModeInput {
-    pub width: u32,
-    pub height: u32,
-    pub rate: u32,
+    pub width: i32,
+    pub height: i32,
+    pub rate: i32,
 }
 
 impl Display for HeadModeInput {
@@ -32,7 +32,7 @@ impl Display for HeadModeInput {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HeadInfo {
     pub head: ZwlrOutputHeadV1,
     pub name: Option<String>,
@@ -51,12 +51,12 @@ pub struct HeadInfo {
     pub enabled: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HeadMode {
     pub mode: ZwlrOutputModeV1,
-    pub height: u32,
-    pub width: u32,
-    pub rate: u32,
+    pub height: i32,
+    pub width: i32,
+    pub rate: i32,
     pub is_preferred: bool,
     pub is_current: bool,
 }
@@ -81,6 +81,15 @@ pub struct AppData {
     pub manager: Option<ZwlrOutputManagerV1>,
     pub config_result: Option<ConfigResult>,
     pub config_serial: Option<u32>,
+}
+
+impl AppData {
+    pub(crate) fn get_head(&self, name: &str) -> Option<&HeadInfo> {
+        self.heads
+            .values()
+            .find(|head_info| head_info.name.as_deref() == Some(name))
+            .clone()
+    }
 }
 
 impl HeadInfo {
@@ -262,10 +271,10 @@ impl Dispatch<ZwlrOutputModeV1, ()> for AppData {
             match head.modes.get_mut(&_mode.id()) {
                 Some(res) => match event {
                     OutputModeEvent::Size { height, width } => {
-                        res.height = height as u32;
-                        res.width = width as u32;
+                        res.height = height;
+                        res.width = width;
                     }
-                    OutputModeEvent::Refresh { refresh } => res.rate = refresh as u32 / 1000,
+                    OutputModeEvent::Refresh { refresh } => res.rate = refresh as i32 / 1000,
                     OutputModeEvent::Preferred {} => res.is_preferred = true,
                     _ => {}
                 },

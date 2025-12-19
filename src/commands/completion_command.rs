@@ -24,11 +24,53 @@ impl Generator for AdvancedZsh {
         script.push_str(
             r#"
 _wlout_list_displays() {
-    local output
+    local output display_name
     local -a displays
+
+    # Parse the raw command line instead of `words`, which is rewritten by `_arguments`.
+    local -a cmdline
+    cmdline=("${(z)BUFFER}")
+
+    # Find the first display argument after a subcommand that expects it.
+    for (( i=1; i<=${#cmdline[@]}; ++i )); do
+        case ${cmdline[i]} in
+            info|power|move|mode)
+                for (( j=i+1; j<=${#cmdline[@]}; ++j )); do
+                    case ${cmdline[j]} in
+                        # Subcommands that come after the display argument.
+                        above|below|left-of|right-of|position|list|set|current|preferred|help)
+                            break
+                            ;;
+                        -*)
+                            continue
+                            ;;
+                        *)
+                            display_name=${cmdline[j]}
+                            break
+                            ;;
+                    esac
+                done
+                ;;
+        esac
+
+        [[ -n $display_name ]] && break
+    done
+
     output=$(command wlout list 2>/dev/null) || return 0
     # Split on any whitespace (tabs/newlines) to get individual display names.
     displays=(${=output})
+
+    if [[ -n $display_name ]]; then
+        # Filter out the display already present on the command line.
+        local -a filtered=()
+        local display
+        for display in "${displays[@]}"; do
+            [[ $display == "$display_name" ]] && continue
+            filtered+=("$display")
+        done
+        displays=("${filtered[@]}")
+    fi
+
     (( ${#displays[@]} )) && compadd -- "${displays[@]}"
 }
 
@@ -77,6 +119,10 @@ _wlout_list_modes() {
         script = script.replace(
             ":display -- The name of the display:_default",
             ":display -- The name of the display:_wlout_list_displays",
+        );
+        script = script.replace(
+            ":other_display -- Other display:_default",
+            ":other_display -- Other display:_wlout_list_displays",
         );
         script = script.replace(
             "::mode -- The mode format is <WIDTH>x<HEIGHT>@<RATE>:_default",

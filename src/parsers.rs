@@ -44,13 +44,13 @@ impl TypedValueParser for DisplayModeParser {
 
         Ok(HeadModeInput {
             rate: rate_part
-                .parse::<u32>()
+                .parse::<i32>()
                 .expect("Rate should be a valid integer"),
             width: size_split[0]
-                .parse::<u32>()
+                .parse::<i32>()
                 .expect("Width should be a valid integer"),
             height: size_split[1]
-                .parse::<u32>()
+                .parse::<i32>()
                 .expect("Height should be a valid integer"),
         })
     }
