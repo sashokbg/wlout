@@ -39,12 +39,14 @@ pub fn mirror_command(
             reference_display_info.position_x.unwrap(),
             reference_display_info.position_y.unwrap(),
         );
-        moved_display_config.set_mode(&best_mode_1.mode.unwrap());
-        ref_display_config.set_mode(&best_mode_2.mode.unwrap());
+        moved_display_config.set_mode(&best_mode_1.clone().mode.unwrap());
+        ref_display_config.set_mode(&best_mode_2.clone().mode.unwrap());
     });
 
     let success =
-        format!("Mirrored display {mirrored_display_name} same-as {reference_display_name}.");
+        format!("Mirrored display {mirrored_display_name}({best_mode_1}) same-as {reference_display_name}({best_mode_2}).
+
+Using {best_mode_1} and {best_mode_2} as best common resolution.");
     let fail =
         format!("Unable to mirror display {mirrored_display_name} as {reference_display_name}");
     handle_result(result, &success, &fail)

@@ -51,7 +51,7 @@ pub fn mode_set_command(
     let target_head = state.get_head(name);
 
     let target_mode = target_head
-        .find_mode(mode.width, mode.width, mode.rate)
+        .find_mode(mode.width, mode.height, mode.rate)
         .expect(&format!("Mode {} not found on display {}", mode, name));
 
     let result = apply(&mut state, &mut event_queue, |config, qh| {

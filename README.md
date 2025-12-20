@@ -80,6 +80,9 @@ Where <shell_name> is one of:
 - Add dynamic shell completions for other shells
 - Add case-insensitive dynamic parameters support (ex edp <tab> yielding eDP-1)
 - Add dmenu KWin support for KDE
+- Prevent switching off last display
+- Use preferred screen mode when duplicating
+- Add mode <display> auto command that uses the screen prefered mode
 - Optimize positions default screen by keeping a virtual map of all screens
 - Add some unit tests
 
