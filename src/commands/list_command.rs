@@ -1,5 +1,5 @@
-use crate::common::{AppData, HeadInfo};
 use crate::head_printer::print_heads_detail;
+use crate::model::{AppData, HeadInfo};
 
 pub fn list_command(state: AppData, verbose: bool) {
     if verbose {

@@ -1,8 +1,6 @@
-use crate::common::{AppData, ConfigResult, HeadModeInput};
-use std::process;
+use crate::commands::common::{apply, handle_result};
+use crate::model::{AppData, HeadModeInput};
 use wayland_client::EventQueue;
-use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_head_v1::ZwlrOutputConfigurationHeadV1;
-use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_v1::ZwlrOutputConfigurationV1;
 
 pub fn mode_current_command(name: &str, state: AppData) {
     let target_head = state
@@ -48,50 +46,22 @@ pub fn mode_set_command(
     name: &str,
     mode: &HeadModeInput,
     mut state: AppData,
-    configuration: ZwlrOutputConfigurationV1,
     mut event_queue: EventQueue<AppData>,
 ) {
-    let target_head = state
-        .heads
-        .values()
-        .find(|head| head.name.as_deref() == Some(name))
-        .expect(&*format!("Display \"{}\" not found", name));
+    let target_head = state.get_head(name);
 
     let target_mode = target_head
-        .modes
-        .values()
-        .find(|m| m.width == mode.width && m.height == mode.height && m.rate == mode.rate)
-        .expect(&*format!("Mode {} not found on display {}", mode, name));
+        .find_mode(mode.width, mode.width, mode.rate)
+        .expect(&format!("Mode {} not found on display {}", mode, name));
 
-    let qh = event_queue.handle();
-    let head_config: ZwlrOutputConfigurationHeadV1 =
-        configuration.enable_head(&target_head.head, &qh, ());
-    head_config.set_mode(&target_mode.mode);
-    state.config_result = None;
-    configuration.apply();
+    let result = apply(&mut state, &mut event_queue, |config, qh| {
+        let head_config = config.enable_head(&target_head.head, qh, ());
+        head_config.set_mode(&target_mode.mode);
+    });
+    let success_message = &format!("Set mode {} for display {}", mode, name);
+    let failure_message = &format!("Failed to set mode {} for display {}", mode, name);
 
-    while state.config_result.is_none() {
-        event_queue.blocking_dispatch(&mut state).unwrap();
-    }
-
-    match state.config_result.unwrap() {
-        ConfigResult::Succeeded => {
-            println!("Set mode {} for display {}", mode, name)
-        }
-        ConfigResult::Failed => {
-            eprintln!("Failed to set mode {} for display {}", mode, name);
-            process::exit(1);
-        }
-        ConfigResult::Cancelled => {
-            eprintln!(
-                "Configuration cancelled before setting mode {} for display {}",
-                mode, name
-            );
-            process::exit(1);
-        }
-    }
-
-    configuration.destroy();
+    handle_result(result, success_message, failure_message);
 }
 
 pub fn mode_list_command(name: &str, state: AppData) {

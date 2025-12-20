@@ -1,7 +1,6 @@
-use crate::common::{AppData, ConfigResult};
-use std::process;
-use wayland_client::EventQueue;
 use crate::commands::common::{apply, handle_result};
+use crate::model::AppData;
+use wayland_client::EventQueue;
 
 pub const REL_POS_ABOVE: &str = "above";
 pub const REL_POS_BELOW: &str = "below";
@@ -16,14 +15,9 @@ pub fn move_relative_command(
     mut event_queue: EventQueue<AppData>,
 ) {
     let (moved_display_mode, moved_display_info, reference_display_mode, reference_display_info) = {
-        let moved_display_info = state
-            .get_head(moved_display_name)
-            .expect(&*format!("Display \"{}\" not found", moved_display_name));
+        let moved_display_info = state.get_head(moved_display_name);
 
-        let reference_display_info = state.get_head(reference_display_name).expect(&*format!(
-            "Display \"{}\" not found",
-            reference_display_name
-        ));
+        let reference_display_info = state.get_head(reference_display_name);
 
         let moved_display_mode = moved_display_info
             .get_current_mode()
@@ -40,9 +34,7 @@ pub fn move_relative_command(
         )
     };
 
-    let qh = event_queue.handle();
-
-    let result = apply(state, &mut event_queue, |config| {
+    let result = apply(state, &mut event_queue, |config, qh| {
         let moved_display_config = config.enable_head(&moved_display_info.head, &qh, ());
 
         match pos {
@@ -87,33 +79,15 @@ pub fn move_command(
     mut state: AppData,
     mut event_queue: EventQueue<AppData>,
 ) {
-    let target_head = state
-        .get_head(name)
-        .expect(&*format!("Display \"{}\" not found", name))
-        .head
-        .clone();
+    let target_head = state.get_head(name).head.clone();
 
-    let qh = event_queue.handle();
-
-    let config_result = apply(&mut state, &mut event_queue, |configuration| {
+    let config_result = apply(&mut state, &mut event_queue, |configuration, qh| {
         let head_config = configuration.enable_head(&target_head, &qh, ());
         head_config.set_position(x, y);
     });
 
-    match config_result {
-        ConfigResult::Succeeded => {
-            println!("Set position for display {} to x: {} y: {}", name, x, y)
-        }
-        ConfigResult::Failed => {
-            eprintln!("Failed to set position for display {}", name);
-            process::exit(1);
-        }
-        ConfigResult::Cancelled => {
-            eprintln!(
-                "Configuration cancelled before setting position for display {}",
-                name
-            );
-            process::exit(1);
-        }
-    }
+    let success_message = &format!("Set position for display {} to x: {} y: {}", name, x, y);
+    let error_message = &format!("Failed to set position for display {}", name);
+
+    handle_result(config_result, success_message, error_message);
 }

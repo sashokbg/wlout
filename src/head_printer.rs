@@ -1,10 +1,11 @@
-use crate::common::HeadInfo;
+use crate::model::HeadInfo;
 use std::io::Write;
 use tabwriter::TabWriter;
 
 pub fn print_heads_detail(heads: Vec<HeadInfo>) {
     let mut tw = TabWriter::new(vec![]);
-    let mut string_result = String::from("Name\tEnabled\tCurrent Mode\tMake\tModel\tPhysical Size\tPosition");
+    let mut string_result =
+        String::from("Name\tEnabled\tCurrent Mode\tMake\tModel\tPhysical Size\tPosition");
 
     for head in heads {
         let phys_size_str;
@@ -30,7 +31,6 @@ pub fn print_heads_detail(heads: Vec<HeadInfo>) {
             )
         }
 
-
         let current_mode_str;
 
         let mode = head.get_current_mode();
@@ -50,7 +50,8 @@ pub fn print_heads_detail(heads: Vec<HeadInfo>) {
             head.model.clone().or(Some(String::from("N/A"))).unwrap(),
             phys_size_str,
             position_str
-        ).as_str()
+        )
+        .as_str()
     }
 
     write!(&mut tw, "{}", string_result).unwrap();

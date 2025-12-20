@@ -1,4 +1,4 @@
-use crate::common::HeadModeInput;
+use crate::model::HeadModeInput;
 use clap::builder::TypedValueParser;
 use clap::error::{ContextKind, ContextValue, ErrorKind};
 use clap::{Arg, Command, Error};

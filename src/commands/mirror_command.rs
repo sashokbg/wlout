@@ -1,5 +1,5 @@
 use crate::commands::common::{apply, handle_result};
-use crate::common::AppData;
+use crate::model::AppData;
 use wayland_client::EventQueue;
 
 pub fn mirror_command(
@@ -10,13 +10,9 @@ pub fn mirror_command(
 ) {
     let (_, moved_display_info, _, reference_display_info) = {
         let moved_display_info = state
-            .get_head(mirrored_display_name)
-            .expect(&*format!("Display \"{}\" not found", mirrored_display_name));
+            .get_head(mirrored_display_name);
 
-        let reference_display_info = state.get_head(reference_display_name).expect(&*format!(
-            "Display \"{}\" not found",
-            reference_display_name
-        ));
+        let reference_display_info = state.get_head(reference_display_name);
 
         let moved_display_mode = moved_display_info
             .get_current_mode()
@@ -33,9 +29,7 @@ pub fn mirror_command(
         )
     };
 
-    let qh = event_queue.handle();
-
-    let result = apply(state, &mut event_queue, |config| {
+    let result = apply(state, &mut event_queue, |config, qh| {
         let moved_display_config = config.enable_head(&moved_display_info.head, &qh, ());
         moved_display_config.set_position(
             reference_display_info.position_x.unwrap(),

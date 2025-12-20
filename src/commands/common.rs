@@ -1,12 +1,12 @@
+use crate::model::{AppData, ConfigResult};
 use std::process;
-use wayland_client::EventQueue;
+use wayland_client::{EventQueue, QueueHandle};
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_v1::ZwlrOutputConfigurationV1;
-use crate::common::{AppData, ConfigResult};
 
 pub fn apply(
     state: &mut AppData,
     event_queue: &mut EventQueue<AppData>,
-    configure: impl FnOnce(&ZwlrOutputConfigurationV1),
+    configure: impl FnOnce(&ZwlrOutputConfigurationV1, &QueueHandle<AppData>),
 ) -> ConfigResult {
     let qh = event_queue.handle();
     let manager = state.manager.as_ref().expect("output manager not bound");
@@ -14,7 +14,7 @@ pub fn apply(
     let configuration = manager.create_configuration(serial, &qh, ());
 
     state.config_result = None;
-    configure(&configuration);
+    configure(&configuration, &qh);
     configuration.apply();
 
     while state.config_result.is_none() {

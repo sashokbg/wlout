@@ -9,14 +9,14 @@ use crate::commands::move_command::{
     move_command, move_relative_command, REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF,
     REL_POS_RIGHT_OF,
 };
-use crate::commands::power_command::{off_command, on_command};
-use crate::common::{AppData, HeadModeInput};
+use crate::commands::power_command::power_command;
+use crate::model::{AppData, HeadModeInput};
 use crate::parsers::DisplayModeParser;
 use clap::{value_parser, Arg, ArgAction, Command};
 use clap_complete::aot::Shell;
 use std::collections::HashMap;
 use std::process::exit;
-use wayland_client::{Connection, EventQueue, QueueHandle};
+use wayland_client::{Connection, EventQueue};
 
 static NAME_ARG_ID: &str = "display";
 
@@ -42,7 +42,7 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                      .help("Turn on verbose / detailed mode")
                      .long("verbose")
                      .short('v')
-                     .action(clap::ArgAction::SetTrue),
+                     .action(ArgAction::SetTrue),
             )
             .about("List displays"))
         .subcommand(Command::new("info")
@@ -173,13 +173,12 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
         )
 }
 
-fn connect_wayland_dm() -> (EventQueue<AppData>, QueueHandle<AppData>, AppData) {
+fn connect_wayland_dm() -> (EventQueue<AppData>, AppData) {
     let conn = Connection::connect_to_env().expect("failed to connect to a Wayland compositor");
     let display = conn.display();
     let mut event_queue = conn.new_event_queue::<AppData>();
-    let qh = event_queue.handle();
 
-    let _registry = display.get_registry(&qh, ());
+    let _registry = display.get_registry(&event_queue.handle(), ());
 
     let mut state = AppData {
         initial_done: false,
@@ -193,7 +192,7 @@ fn connect_wayland_dm() -> (EventQueue<AppData>, QueueHandle<AppData>, AppData) 
     while !state.initial_done {
         event_queue.blocking_dispatch(&mut state).unwrap();
     }
-    (event_queue, qh, state)
+    (event_queue, state)
 }
 
 pub fn run() {
@@ -205,7 +204,7 @@ pub fn run() {
         return;
     }
 
-    let (event_queue, qh, mut state) = connect_wayland_dm();
+    let (event_queue, mut state) = connect_wayland_dm();
 
     match matches.subcommand() {
         Some(("power", sub_matches)) => {
@@ -215,13 +214,9 @@ pub fn run() {
 
             let power_mode = sub_matches.get_one::<String>("power_mode").unwrap();
 
-            let manager = state.manager.as_ref().expect("output manager not bound");
-            let serial: u32 = state.config_serial.unwrap();
-            let configuration = manager.create_configuration(serial, &qh, ());
-
             match power_mode.as_str() {
-                "on" => on_command(name, state, configuration, event_queue),
-                "off" => off_command(name, state, configuration, event_queue),
+                "on" => power_command(name, true, state, event_queue),
+                "off" => power_command(name, false, state, event_queue),
                 &_ => {
                     eprintln!("Power mode should be on / off");
                     exit(1);
@@ -347,10 +342,6 @@ pub fn run() {
                 .get_one::<String>(NAME_ARG_ID)
                 .expect(format!("{} is required", NAME_ARG_ID).as_str());
 
-            let manager = state.manager.as_ref().expect("output manager not bound");
-            let serial: u32 = state.config_serial.unwrap();
-            let configuration = manager.create_configuration(serial, &qh, ());
-
             match sub_matches.subcommand() {
                 Some(("current", _)) => {
                     mode_current_command(name, state);
@@ -363,9 +354,7 @@ pub fn run() {
                 }
                 Some(("set", sub_sub_matches)) => {
                     match sub_sub_matches.get_one::<HeadModeInput>("mode") {
-                        Some(mode) => {
-                            mode_set_command(name, mode, state, configuration, event_queue)
-                        }
+                        Some(mode) => mode_set_command(name, mode, state, event_queue),
                         None => {}
                     }
                 }
