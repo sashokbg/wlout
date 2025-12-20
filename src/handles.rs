@@ -137,7 +137,7 @@ impl Dispatch<ZwlrOutputHeadV1, ()> for AppData {
                     current_head.modes.insert(
                         mode.id(),
                         HeadMode {
-                            mode: mode.clone(),
+                            mode: Some(mode.clone()),
                             rate: 0,
                             height: 0,
                             width: 0,

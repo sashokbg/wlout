@@ -56,7 +56,7 @@ pub fn mode_set_command(
 
     let result = apply(&mut state, &mut event_queue, |config, qh| {
         let head_config = config.enable_head(&target_head.head, qh, ());
-        head_config.set_mode(&target_mode.mode);
+        head_config.set_mode(&target_mode.mode.clone().unwrap());
     });
     let success_message = &format!("Set mode {} for display {}", mode, name);
     let failure_message = &format!("Failed to set mode {} for display {}", mode, name);

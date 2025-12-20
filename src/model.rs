@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use wayland_client::backend::ObjectId;
 use wayland_client::protocol::wl_output::Transform;
@@ -13,6 +14,12 @@ pub struct HeadModeInput {
     pub width: i32,
     pub height: i32,
     pub rate: i32,
+}
+
+impl PartialEq<Self> for HeadModeInput {
+    fn eq(&self, other: &Self) -> bool {
+        self.width == other.width && self.height == other.height && self.rate == other.rate
+    }
 }
 
 impl Display for HeadModeInput {
@@ -40,14 +47,28 @@ pub struct HeadInfo {
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub struct HeadMode {
-    pub mode: ZwlrOutputModeV1,
+    pub mode: Option<ZwlrOutputModeV1>,
     pub height: i32,
     pub width: i32,
     pub rate: i32,
     pub is_preferred: bool,
     pub is_current: bool,
+}
+
+impl Eq for HeadMode {}
+
+impl PartialEq for HeadMode {
+    fn eq(&self, other: &Self) -> bool {
+        self.rate == other.rate && self.height == other.height && self.width == other.width
+    }
+}
+
+impl HeadMode {
+    fn has_same_dimensions(&self, other: &HeadMode) -> bool {
+        self.width == other.width && self.height == other.height
+    }
 }
 
 impl Display for HeadMode {
@@ -120,4 +141,49 @@ impl HeadInfo {
             .values()
             .find(|m| m.width == width && m.height == height && m.rate == rate)
     }
+}
+
+pub fn get_common_modes(
+    head_info: &HeadInfo,
+    other_info: &HeadInfo,
+) -> (Vec<HeadMode>, Vec<HeadMode>) {
+    let mut result1: HashSet<HeadMode> = HashSet::new();
+    let mut result2: HashSet<HeadMode> = HashSet::new();
+
+    for el in head_info.modes.values() {
+        let corresponding_elements = other_info
+            .modes
+            .values()
+            .filter(|m| m.has_same_dimensions(&el))
+            .map(|el| el.clone())
+            .collect::<Vec<HeadMode>>();
+
+        if !corresponding_elements.is_empty() {
+            result1.insert(el.clone());
+        }
+
+        result2.extend(corresponding_elements);
+    }
+
+    (result1.into_iter().collect(), result2.into_iter().collect())
+}
+
+fn compare_modes(mode: &HeadMode, other: &HeadMode) -> Ordering {
+    other
+        .height
+        .cmp(&mode.height)
+        .then(other.width.cmp(&mode.width))
+        .then(other.rate.cmp(&mode.rate))
+}
+
+pub fn get_best_display_modes(
+    mut modes1: Vec<HeadMode>,
+    mut modes2: Vec<HeadMode>,
+) -> (HeadMode, HeadMode) {
+    modes1.sort_by(compare_modes);
+    let max_1 = modes1.first().unwrap().to_owned();
+    modes2.sort_by(compare_modes);
+    let max_2 = modes2.first().unwrap().to_owned();
+
+    (max_1, max_2)
 }
