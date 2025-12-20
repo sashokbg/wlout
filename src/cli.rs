@@ -1,6 +1,7 @@
 use crate::commands::completion_command::completion_command;
 use crate::commands::info_command::info_command;
 use crate::commands::list_command::list_command;
+use crate::commands::mirror_command::mirror_command;
 use crate::commands::mode_command::{
     mode_current_command, mode_list_command, mode_preferred_command, mode_set_command,
 };
@@ -143,6 +144,21 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                             .help("The mode format is <WIDTH>x<HEIGHT>@<RATE>")
                             .value_parser(DisplayModeParser {}),
                     )
+                )
+        )
+        .subcommand(
+            Command::new("mirror")
+                .about("Find the highest common resolution and align two display on top of each other in order to output the same picture")
+                .subcommand_required(true)
+                .arg(display_arg.clone())
+                .subcommand(
+                    Command::new("same-as")
+                        .about("Other display")
+                        .arg(
+                            Arg::new("other_display")
+                                .required(true)
+                                .help("The display to mirror")
+                        )
                 )
         )
         .subcommand(
@@ -306,6 +322,24 @@ pub fn run() {
                 }
                 None => todo!(),
                 Some((&_, _)) => todo!(),
+            }
+        }
+        Some(("mirror", sub_matches)) => {
+            let name = sub_matches
+                .get_one::<String>(NAME_ARG_ID)
+                .expect(format!("{} is required", NAME_ARG_ID).as_str());
+
+            match sub_matches.subcommand() {
+                Some(("same-as", sub_sub_matches)) => {
+                    let other_display = sub_sub_matches.get_one::<String>("other_display").unwrap();
+                    if name == other_display {
+                        eprintln!("The second display must be different !");
+                        exit(1);
+                    }
+
+                    mirror_command(name, other_display, &mut state, event_queue);
+                }
+                _ => {}
             }
         }
         Some(("mode", sub_matches)) => {

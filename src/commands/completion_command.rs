@@ -34,7 +34,7 @@ _wlout_list_displays() {
     # Find the first display argument after a subcommand that expects it.
     for (( i=1; i<=${#cmdline[@]}; ++i )); do
         case ${cmdline[i]} in
-            info|power|move|mode)
+            info|power|move|mode|mirror)
                 for (( j=i+1; j<=${#cmdline[@]}; ++j )); do
                     case ${cmdline[j]} in
                         # Subcommands that come after the display argument.
@@ -123,6 +123,10 @@ _wlout_list_modes() {
         script = script.replace(
             ":other_display -- Other display:_default",
             ":other_display -- Other display:_wlout_list_displays",
+        );
+        script = script.replace(
+            ":other_display -- The display to mirror:_default",
+            ":other_display -- The display to mirror:_wlout_list_displays",
         );
         script = script.replace(
             "::mode -- The mode format is <WIDTH>x<HEIGHT>@<RATE>:_default",
