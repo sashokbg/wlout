@@ -75,6 +75,19 @@ Where <shell_name> is one of:
 - fish (partially implemented)
 - elvish (partially implemented)
 
+## Building
+
+Manually
+
+```
+cargo build
+install target/debug/wlout ~/.local/bin
+```
+
+Or using Taskfile
+
+`task install`
+
 ## Roadmap
 
 - Add dynamic shell completions for other shells
@@ -82,6 +95,7 @@ Where <shell_name> is one of:
 - Add dmenu KWin support for KDE
 - Prevent switching off last display
 - Use preferred screen mode when duplicating
+- Allow to not use "best common resolution" when mirroring via a flag
 - Add mode <display> auto command that uses the screen prefered mode
 - Optimize positions default screen by keeping a virtual map of all screens
 - Add some unit tests
