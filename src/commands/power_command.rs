@@ -1,5 +1,6 @@
-use crate::commands::common::{apply, handle_result};
+use crate::commands::common::{apply, handle_result, prompt};
 use crate::model::AppData;
+use std::process::exit;
 use wayland_client::EventQueue;
 
 pub fn power_command(
@@ -7,13 +8,23 @@ pub fn power_command(
     on: bool,
     mut state: AppData,
     mut event_queue: EventQueue<AppData>,
+    force: &bool,
 ) {
     let target_head = state.get_head(name);
+    let count = state.heads.iter().filter(|(_, head)| head.enabled).count();
 
     let result = apply(&mut state, &mut event_queue, |config, qh| {
         if on {
             config.enable_head(&target_head.head, &qh, ());
         } else {
+            // off
+            if count < 2 && !force {
+                let read = prompt("You are about to power off your last display.\nProceed ? (Y/n)");
+
+                if read.to_lowercase() != "y" {
+                    exit(1)
+                }
+            }
             config.disable_head(&target_head.head);
         }
     });

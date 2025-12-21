@@ -1,4 +1,5 @@
 use crate::model::{AppData, ConfigResult};
+use std::io::Write;
 use std::process;
 use wayland_client::{EventQueue, QueueHandle};
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_configuration_v1::ZwlrOutputConfigurationV1;
@@ -39,4 +40,16 @@ pub fn handle_result(config_result: ConfigResult, success: &str, fail: &str) {
             process::exit(1);
         }
     }
+}
+
+pub fn prompt(text: &str) -> String {
+    print!("{} ", text);
+    std::io::stdout().flush().expect("Oups, stdout error");
+
+    let mut response = String::new();
+    std::io::stdin()
+        .read_line(&mut response)
+        .expect("Failed to get input");
+
+    response.trim_end().to_string()
 }

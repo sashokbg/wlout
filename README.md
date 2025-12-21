@@ -92,18 +92,19 @@ Or using Taskfile
 
 ## Roadmap
 
-- Add dynamic shell completions for other shells
-- Add case-insensitive dynamic parameters support (ex edp <tab> yielding eDP-1)
-- Add dbus KWin support for KDE
-- Prevent switching off last display
-- Use preferred screen mode when duplicating
-- Allow to not use "best common resolution" when mirroring via a flag
-- Add mode <display> auto command that uses the screen preferred mode
-- Optimize positions default screen by keeping a virtual map of all screens
-- Add to AUR
-- Add adapive sync options
-- Add "set prefered mode"
-- Add some unit tests
+- [x] Add dynamic shell completions for bash
+- [] Add dynamic shell completions for fish
+- [] Add case-insensitive dynamic parameters support (ex edp <tab> yielding eDP-1)
+- [] Add dbus KWin support for KDE
+- [x] Prevent switching off last display
+- [x] Use preferred screen mode when duplicating
+- [] Allow to not use "best common resolution" when mirroring via a flag
+- [x] Add mode <display> auto command that uses the screen preferred mode
+- [] Optimize positions default screen by keeping a virtual map of all screens
+- [] Add to AUR
+- [] Add adaptive sync options
+- [] Add "set prefered mode"
+- [] Add some unit tests
 
 ## AI Disclaimer
 
