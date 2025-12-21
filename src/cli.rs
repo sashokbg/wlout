@@ -1,3 +1,4 @@
+use clap::crate_version;
 use crate::parsers::DisplayModeParser;
 use clap::{value_parser, Arg, ArgAction, Command};
 use clap_complete::aot::Shell;
@@ -10,8 +11,8 @@ pub fn build_cli() -> Command {
         .help("The name of the display");
 
     Command::new("wlout")
-        .version("1.0")
-        .about("Manage wayland compositor display outputs (heads).")
+        .version(crate_version!())
+        .about("Wayland (Wl Roots) Display Manager CLI with UNIX philosophy and modern goodies")
         .long_about("
 Manage wayland compositor display outputs (heads).
 
