@@ -6,13 +6,13 @@ use crate::commands::mode_command::{
     mode_current_command, mode_list_command, mode_preferred_command, mode_set_command,
 };
 use crate::commands::move_command::{
-    move_command, move_relative_command, REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF,
-    REL_POS_RIGHT_OF,
+    REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF, REL_POS_RIGHT_OF, move_command,
+    move_relative_command,
 };
 use crate::commands::power_command::power_command;
 use crate::model::{AppData, HeadModeInput};
 use crate::parsers::DisplayModeParser;
-use clap::{value_parser, Arg, ArgAction, Command};
+use clap::{Arg, ArgAction, Command, value_parser};
 use clap_complete::aot::Shell;
 use std::collections::HashMap;
 use std::process::exit;

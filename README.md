@@ -71,7 +71,7 @@ Add `source <(wlout completion <shell_name>)` in your shell's rc profile file.
 Where <shell_name> is one of:
 
 - zsh
-- bash (partially implemented)
+- bash
 - fish (partially implemented)
 - elvish (partially implemented)
 
@@ -92,12 +92,15 @@ Or using Taskfile
 
 - Add dynamic shell completions for other shells
 - Add case-insensitive dynamic parameters support (ex edp <tab> yielding eDP-1)
-- Add dmenu KWin support for KDE
+- Add dbus KWin support for KDE
 - Prevent switching off last display
 - Use preferred screen mode when duplicating
 - Allow to not use "best common resolution" when mirroring via a flag
-- Add mode <display> auto command that uses the screen prefered mode
+- Add mode <display> auto command that uses the screen preferred mode
 - Optimize positions default screen by keeping a virtual map of all screens
+- Add to AUR
+- Add adapive sync options
+- Add "set prefered mode"
 - Add some unit tests
 
 ## AI Disclaimer
