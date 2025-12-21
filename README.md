@@ -33,6 +33,16 @@ Unix philosophy
 
 ![video](./video.gif)
 
+## Installation
+
+- Arch based distributions
+
+  Using your favorite AUR helper https://aur.archlinux.org/packages/wlout
+
+  ```
+  yay -Sy wlout
+  ```
+
 ## Usage
 
 - General use: `wlout <verb> <display> <option>`
@@ -93,20 +103,20 @@ Or using Taskfile
 ## Roadmap
 
 - [x] Add dynamic shell completions for bash
-- [] Add dynamic shell completions for fish
-- [] Detect unsupported environments and show warning
+- [ ] Add dynamic shell completions for fish
+- [ ] Detect unsupported environments and show warning
 - [x] Add GPLv3 license
-- [] Add case-insensitive dynamic parameters support (ex edp <tab> yielding eDP-1)
-- [] Add dbus KWin support for KDE
+- [ ] Add case-insensitive dynamic parameters support (ex edp <tab> yielding eDP-1)
+- [ ] Add dbus KWin support for KDE
 - [x] Prevent switching off last display
 - [x] Use preferred screen mode when duplicating
-- [] Allow to not use "best common resolution" when mirroring via a flag
+- [ ] Allow to not use "best common resolution" when mirroring via a flag
 - [x] Add mode <display> auto command that uses the screen preferred mode
-- [] Optimize positions default screen by keeping a virtual map of all screens
-- [] Add to AUR
-- [] Add adaptive sync options
-- [] Add "set prefered mode"
-- [] Add some unit tests
+- [ ] Optimize positions default screen by keeping a virtual map of all screens
+- [x] Add to AUR
+- [ ] Add adaptive sync options
+- [ ] Add "set preferred mode"
+- [ ] Add some unit tests
 
 ## AI Disclaimer
 
