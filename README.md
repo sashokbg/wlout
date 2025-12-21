@@ -94,6 +94,8 @@ Or using Taskfile
 
 - [x] Add dynamic shell completions for bash
 - [] Add dynamic shell completions for fish
+- [] Detect unsupported environments and show warning
+- [x] Add GPLv3 license
 - [] Add case-insensitive dynamic parameters support (ex edp <tab> yielding eDP-1)
 - [] Add dbus KWin support for KDE
 - [x] Prevent switching off last display
