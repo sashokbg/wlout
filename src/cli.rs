@@ -3,16 +3,17 @@ use crate::commands::info_command::info_command;
 use crate::commands::list_command::list_command;
 use crate::commands::mirror_command::mirror_command;
 use crate::commands::mode_command::{
-    mode_current_command, mode_list_command, mode_preferred_command, mode_set_command,
+    mode_auto_command, mode_current_command, mode_list_command, mode_preferred_command,
+    mode_set_command,
 };
 use crate::commands::move_command::{
-    REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF, REL_POS_RIGHT_OF, move_command,
-    move_relative_command,
+    move_command, move_relative_command, REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF,
+    REL_POS_RIGHT_OF,
 };
 use crate::commands::power_command::power_command;
 use crate::model::{AppData, HeadModeInput};
 use crate::parsers::DisplayModeParser;
-use clap::{Arg, ArgAction, Command, value_parser};
+use clap::{value_parser, Arg, ArgAction, Command};
 use clap_complete::aot::Shell;
 use std::collections::HashMap;
 use std::process::exit;
@@ -136,6 +137,8 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
                     .about("Show the current mode for this display"))
                 .subcommand(Command::new("preferred")
                     .about("Show the advertised preferred mode for this display"))
+                .subcommand(Command::new("auto")
+                    .about("Set the display mode to its preferred settings"))
                 .subcommand(Command::new("set")
                     .arg_required_else_help(true)
                     .about("Set the resolution and refresh rate for the display")
@@ -204,7 +207,7 @@ pub fn run() {
         return;
     }
 
-    let (event_queue, mut state) = connect_wayland_dm();
+    let (mut event_queue, mut state) = connect_wayland_dm();
 
     match matches.subcommand() {
         Some(("power", sub_matches)) => {
@@ -347,7 +350,10 @@ pub fn run() {
                     mode_current_command(name, state);
                 }
                 Some(("preferred", _)) => {
-                    mode_preferred_command(name, state);
+                    mode_preferred_command(name, &state);
+                }
+                Some(("auto", _)) => {
+                    mode_auto_command(name, &mut state, &mut event_queue);
                 }
                 Some(("list", _)) => {
                     mode_list_command(name, state);

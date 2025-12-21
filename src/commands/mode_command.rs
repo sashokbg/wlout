@@ -1,5 +1,5 @@
 use crate::commands::common::{apply, handle_result};
-use crate::model::{AppData, HeadModeInput};
+use crate::model::{AppData, HeadMode, HeadModeInput};
 use wayland_client::EventQueue;
 
 pub fn mode_current_command(name: &str, state: AppData) {
@@ -22,12 +22,31 @@ pub fn mode_current_command(name: &str, state: AppData) {
     println!("{}", string_result)
 }
 
-pub fn mode_preferred_command(name: &str, state: AppData) {
-    let target_head = state
-        .heads
-        .values()
-        .find(|head| head.name.as_deref() == Some(name))
-        .expect(&*format!("Display \"{}\" not found", name));
+pub fn mode_auto_command(name: &str, state: &mut AppData, event_queue: &mut EventQueue<AppData>) {
+    let target_head = state.get_head(name);
+
+    let mode = _get_preferred_mode(name, state);
+
+    let result = apply(state, event_queue, |config, qh| {
+        let head_config = config.enable_head(&target_head.head, qh, ());
+        head_config.set_mode(&mode.mode.clone().unwrap());
+    });
+
+    let success_message = &format!("Auto set mode {} for display {}", mode, name);
+    let failure_message = &format!("Failed to set mode {} for display {}", mode, name);
+
+    handle_result(result, success_message, failure_message);
+}
+
+pub fn mode_preferred_command(name: &str, state: &AppData) {
+    let mode = _get_preferred_mode(name, state);
+
+    let string_result = format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate);
+    println!("{}", string_result)
+}
+
+fn _get_preferred_mode(name: &str, state: &AppData) -> HeadMode {
+    let target_head = state.get_head(name);
 
     let mode = target_head
         .modes
@@ -37,9 +56,7 @@ pub fn mode_preferred_command(name: &str, state: AppData) {
             "No preferred mode not found on display {}.",
             name
         ));
-
-    let string_result = format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate);
-    println!("{}", string_result)
+    mode.clone()
 }
 
 pub fn mode_set_command(
