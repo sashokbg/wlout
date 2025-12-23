@@ -115,7 +115,7 @@ Or using Taskfile
 - [ ] Optimize positions default screen by keeping a virtual map of all screens
 - [x] Add to AUR
 - [ ] Add adaptive sync options
-- [ ] Add "set preferred mode"
+- [x] Add "set preferred mode"
 - [ ] Add some unit tests
 
 ## AI Disclaimer

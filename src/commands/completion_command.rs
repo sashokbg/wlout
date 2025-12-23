@@ -99,14 +99,22 @@ __wlout_list_modes() {
 
     echo "${modes[@]}"
 }
+
+__wlout_ci_compadd() {
+    local cur="$1"
+    shift
+    local candidate
+    for candidate in "$@"; do
+        [[ ${candidate,,} == ${cur,,}* ]] && COMPREPLY+=("$candidate")
+    done
+}
 "#,
         );
 
         script = script.replace("<display>", "$(__wlout_list_displays)");
         script = script.replace("<other_display>", "$(__wlout_list_displays)");
         script = script.replace("[mode]", "$(__wlout_list_modes)");
-        script = script.replace(
-            r#"        wlout__move)
+        script = script.replace(r#"        wlout__move)
             opts="-h --help $(__wlout_list_displays) above below right-of left-of position help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
@@ -120,16 +128,18 @@ __wlout_list_modes() {
             COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
             return 0
             ;;
-"#,
-            r#"        wlout__move)
-            local displays="$(__wlout_list_displays)"
+"#, r#"        wlout__move)
+            local displays_raw="$(__wlout_list_displays)"
+            local -a displays
+            read -a displays <<<"${displays_raw}"
             local subs="above below right-of left-of position help"
             if [[ ${cur} == -* ]]; then
                 COMPREPLY=( $(compgen -W "-h --help" -- "${cur}") )
                 return 0
             fi
             if [[ ${COMP_CWORD} -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "${displays}" -- "${cur}") )
+                COMPREPLY=()
+                __wlout_ci_compadd "${cur}" "${displays[@]}"
                 return 0
             fi
             case "${prev}" in
@@ -139,8 +149,7 @@ __wlout_list_modes() {
             esac
             return 0
             ;;
-"#,
-        );
+"#,);
         script = script.replace(
             r#"        wlout__info)
             opts="-h --help $(__wlout_list_displays)"
@@ -157,13 +166,17 @@ __wlout_list_modes() {
             return 0
             ;;
 "#,
-            r#"        wlout__info)
+r#"        wlout__info)
             if [[ ${cur} == -* ]]; then
                 COMPREPLY=( $(compgen -W "-h --help" -- "${cur}") )
                 return 0
             fi
             if [[ ${COMP_CWORD} -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "$(__wlout_list_displays)" -- "${cur}") )
+                local displays_raw="$(__wlout_list_displays)"
+                local -a displays
+                read -a displays <<<"${displays_raw}"
+                COMPREPLY=()
+                __wlout_ci_compadd "${cur}" "${displays[@]}"
                 return 0
             fi
             return 0
@@ -186,14 +199,17 @@ __wlout_list_modes() {
             return 0
             ;;
 "#,
-            r#"        wlout__power)
-            local displays="$(__wlout_list_displays)"
+r#"        wlout__power)
+            local displays_raw="$(__wlout_list_displays)"
+            local -a displays
+            read -a displays <<<"${displays_raw}"
             if [[ ${cur} == -* ]]; then
                 COMPREPLY=( $(compgen -W "-h --help" -- "${cur}") )
                 return 0
             fi
             if [[ ${COMP_CWORD} -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "${displays}" -- "${cur}") )
+                COMPREPLY=()
+                __wlout_ci_compadd "${cur}" "${displays[@]}"
                 return 0
             fi
             COMPREPLY=( $(compgen -W "on off" -- "${cur}") )
@@ -217,15 +233,18 @@ __wlout_list_modes() {
             return 0
             ;;
 "#,
-            r#"        wlout__mirror)
-            local displays="$(__wlout_list_displays)"
+r#"        wlout__mirror)
+            local displays_raw="$(__wlout_list_displays)"
+            local -a displays
+            read -a displays <<<"${displays_raw}"
             local subs="same-as help"
             if [[ ${cur} == -* ]]; then
                 COMPREPLY=( $(compgen -W "-h --help" -- "${cur}") )
                 return 0
             fi
             if [[ ${COMP_CWORD} -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "${displays}" -- "${cur}") )
+                COMPREPLY=()
+                __wlout_ci_compadd "${cur}" "${displays[@]}"
                 return 0
             fi
             COMPREPLY=( $(compgen -W "${subs}" -- "${cur}") )
@@ -249,19 +268,23 @@ __wlout_list_modes() {
             return 0
             ;;
 "#,
-            r#"        wlout__mirror__same__as)
+r#"        wlout__mirror__same__as)
             if [[ ${cur} == -* ]]; then
                 COMPREPLY=( $(compgen -W "-h --help" -- "${cur}") )
                 return 0
             fi
-            COMPREPLY=( $(compgen -W "$(__wlout_list_displays)" -- "${cur}") )
+            local displays_raw="$(__wlout_list_displays)"
+            local -a displays
+            read -a displays <<<"${displays_raw}"
+            COMPREPLY=()
+            __wlout_ci_compadd "${cur}" "${displays[@]}"
             return 0
             ;;
 "#,
         );
         script = script.replace(
             r#"        wlout__mode)
-            opts="-h --help $(__wlout_list_displays) list current preferred set help"
+            opts="-h --help $(__wlout_list_displays) list current preferred auto set help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -276,14 +299,17 @@ __wlout_list_modes() {
             ;;
 "#,
             r#"        wlout__mode)
-            local displays="$(__wlout_list_displays)"
-            local subs="list current preferred set help"
+            local displays_raw="$(__wlout_list_displays)"
+            local -a displays
+            read -a displays <<<"${displays_raw}"
+            local subs="list current preferred auto set help"
             if [[ ${cur} == -* ]]; then
                 COMPREPLY=( $(compgen -W "-h --help" -- "${cur}") )
                 return 0
             fi
             if [[ ${COMP_CWORD} -eq 2 ]]; then
-                COMPREPLY=( $(compgen -W "${displays}" -- "${cur}") )
+                COMPREPLY=()
+                __wlout_ci_compadd "${cur}" "${displays[@]}"
                 return 0
             fi
             COMPREPLY=( $(compgen -W "${subs}" -- "${cur}") )
@@ -307,12 +333,16 @@ __wlout_list_modes() {
             return 0
             ;;
 "#,
-            r#"        wlout__mode__set)
+r#"        wlout__mode__set)
             if [[ ${cur} == -* ]]; then
                 COMPREPLY=( $(compgen -W "-h --help" -- "${cur}") )
                 return 0
             fi
-            COMPREPLY=( $(compgen -W "$(__wlout_list_modes)" -- "${cur}") )
+            local modes_raw="$(__wlout_list_modes)"
+            local -a modes
+            read -a modes <<<"${modes_raw}"
+            COMPREPLY=()
+            __wlout_ci_compadd "${cur}" "${modes[@]}"
             return 0
             ;;
 "#,
@@ -347,6 +377,7 @@ impl Generator for AdvancedZsh {
 _wlout_list_displays() {
     local output display_name
     local -a displays
+    local matcher='m:{a-z}={A-Z}'
 
     # Parse the raw command line instead of `words`, which is rewritten by `_arguments`.
     local -a cmdline
@@ -392,12 +423,13 @@ _wlout_list_displays() {
         displays=("${filtered[@]}")
     fi
 
-    (( ${#displays[@]} )) && compadd -- "${displays[@]}"
+    (( ${#displays[@]} )) && compadd -M "$matcher" -- "${displays[@]}"
 }
 
 _wlout_list_modes() {
     local display_name output
-    local -a modes
+    local -a modes modes_clean mode_labels
+    local matcher='m:{a-z}={A-Z}'
 
     # Parse the raw command line instead of `words`, which is rewritten by `_arguments`.
     local -a cmdline
@@ -429,10 +461,17 @@ _wlout_list_modes() {
     [[ -z $display_name ]] && return 0
 
     output=$(command wlout mode "$display_name" list 2>/dev/null) || return 0
-    # Modes are whitespace separated, split them and add as completions.
+    # Modes are whitespace separated; strip any `(…)` suffix from the inserted value
+    # but keep the original text as the display label.
     modes=(${=output})
+    local mode clean
+    for mode in "${modes[@]}"; do
+        clean=${mode%%\(*}
+        modes_clean+=("$clean")
+        mode_labels+=("$mode")
+    done
 
-    (( ${#modes[@]} )) && compadd -- "${modes[@]}"
+    (( ${#modes_clean[@]} )) && compadd -M "$matcher" -d mode_labels -- "${modes_clean[@]}"
 }
 "#,
         );

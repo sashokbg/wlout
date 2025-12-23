@@ -1,5 +1,5 @@
 use crate::commands::common::{apply, handle_result};
-use crate::model::{AppData, get_best_display_modes, get_common_modes};
+use crate::model::{get_best_display_modes, get_common_modes, AppData};
 use wayland_client::EventQueue;
 
 pub fn mirror_command(

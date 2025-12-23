@@ -4,15 +4,10 @@ use wayland_client::EventQueue;
 
 pub fn mode_current_command(name: &str, state: AppData) {
     let target_head = state
-        .heads
-        .values()
-        .find(|head| head.name.as_deref() == Some(name))
-        .expect(&*format!("Display \"{}\" not found", name));
+        .get_head(name);
 
     let mode = target_head
-        .modes
-        .values()
-        .find(|m| m.is_current)
+        .get_current_mode()
         .expect(&*format!(
             "No current mode not found on display {}. It is probably off",
             name
