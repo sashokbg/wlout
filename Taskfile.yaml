@@ -29,7 +29,7 @@ tasks:
       - cargo set-version --bump patch
       - cargo build --profile=release
       - |
-        git add . && git commit -m "version: $NEW_VERSION"
+        git commit -am "version: $NEW_VERSION"
         git tag $NEW_VERSION
         git push $NEW_VERSION
       - |
