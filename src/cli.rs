@@ -1,5 +1,5 @@
-use clap::crate_version;
 use crate::parsers::DisplayModeParser;
+use clap::crate_version;
 use clap::{value_parser, Arg, ArgAction, Command};
 use clap_complete::aot::Shell;
 
@@ -56,7 +56,8 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
         )
         .subcommand(
             Command::new("move")
-                .about("Set the position of the display in the global compositor space")
+                .about("Set the position of the display in the global compositor space.\n
+Applies position optimisation after moving to ensure that one of your displays is always at the (0, 0) origin.")
                 .subcommand_required(true)
                 .arg(display_arg.clone())
                 .subcommand(

@@ -47,6 +47,12 @@ pub struct HeadInfo {
     pub enabled: bool,
 }
 
+impl HeadInfo {
+    pub fn distance_to_origin(&self) -> i32 {
+        (self.position_x.unwrap().pow(2) + self.position_y.unwrap().pow(2)).isqrt()
+    }
+}
+
 #[derive(Debug, Clone, Hash)]
 pub struct HeadMode {
     pub mode: Option<ZwlrOutputModeV1>,
@@ -91,7 +97,7 @@ pub struct AppData {
     pub manager: Option<ZwlrOutputManagerV1>,
     pub config_result: Option<ConfigResult>,
     pub config_serial: Option<u32>,
-    pub output_manager_found: bool
+    pub output_manager_found: bool,
 }
 
 impl AppData {

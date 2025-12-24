@@ -87,6 +87,16 @@ Where <shell_name> is one of:
 - fish (partially implemented)
 - elvish (partially implemented)
 
+## Screen Placement Optimisation
+
+When you move your primary display relative to another display you can end-up having coordinates that are no-longer
+close to the origin (0, 0). If you keep moving your displays one over the other you can hit the limit of the virtual
+desktop.  
+To prevent this issue the `wlout move` command performs a position optimisation of your displays after each move.
+
+It first finds the display closest to the origin, then calculates the delta x and delta y needed to position it on (0,
+0). Lastly the delta transition is applied on all displays to keep their relative positions.
+
 ## Building
 
 Manually
@@ -104,17 +114,18 @@ Or using Taskfile
 
 - [x] Add dynamic shell completions for bash
 - [ ] Add dynamic shell completions for fish
-- [ ] Detect unsupported environments and show warning
+- [x] Detect unsupported environments and show warning
 - [x] Add GPLv3 license
-- [ ] Add case-insensitive dynamic parameters support (ex edp <tab> yielding eDP-1)
+- [x] Add case-insensitive dynamic parameters support (ex edp <tab> yielding eDP-1)
 - [ ] Add dbus KWin support for KDE
 - [x] Prevent switching off last display
 - [x] Use preferred screen mode when duplicating
 - [ ] Allow to not use "best common resolution" when mirroring via a flag
 - [x] Add mode <display> auto command that uses the screen preferred mode
-- [ ] Optimize positions default screen by keeping a virtual map of all screens
+- [x] Optimize positions default screen by keeping a virtual map of all screens
 - [x] Add to AUR
 - [ ] Add adaptive sync options
+- [ ] Add transform options
 - [x] Add "set preferred mode"
 - [ ] Add some unit tests
 
