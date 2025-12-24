@@ -1,6 +1,6 @@
 [package]
 name = "wlout"
-version = "0.1.7"
+version = "0.1.15"
 edition = "2024"
 
 [dependencies]

@@ -35,7 +35,8 @@ tasks:
       - |
         export NEW_VERSION=$(cargo get package.version)
         sed -Ei "s/pkgver=(.*)/pkgver=$NEW_VERSION/g" pkgbase/PKGBUILD
-        sed -Ei "s/tag=(.*)/tag=$NEW_VERSION/g" pkgbase/PKGBUILD
-        cd pkgbase && makepkg --printsrcinfo > .SRCINFO
+        sed -Ei "s/tag=[^\"]*/tag=$NEW_VERSION/g" pkgbase/PKGBUILD
+        cd pkgbase
+        makepkg --printsrcinfo > .SRCINFO
         git commit -am "version: $NEW_VERSION"
         git push origin master
