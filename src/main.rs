@@ -37,6 +37,7 @@ use crate::commands::move_command::{
     REL_POS_RIGHT_OF,
 };
 use crate::commands::power_command::power_command;
+use crate::handles::OUTPUT_MANAGER_INTERFACE_NAME;
 use crate::model::{AppData, HeadModeInput};
 use std::collections::HashMap;
 use std::process::exit;
@@ -235,9 +236,19 @@ pub(crate) fn connect_wayland_dm() -> (EventQueue<AppData>, AppData) {
         manager: None,
         config_result: None,
         config_serial: None,
+        output_manager_found: false,
     };
 
     event_queue.roundtrip(&mut state).unwrap();
+
+    if !state.output_manager_found {
+        eprintln!(
+            "Your system does not support the {} interface. This tool only works on wlroots compositors.",
+            OUTPUT_MANAGER_INTERFACE_NAME
+        );
+        exit(1)
+    }
+
     while !state.initial_done {
         event_queue.blocking_dispatch(&mut state).unwrap();
     }

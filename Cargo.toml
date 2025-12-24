@@ -1,6 +1,6 @@
 [package]
 name = "wlout"
-version = "0.1.0"
+version = "0.1.5"
 edition = "2024"
 
 [dependencies]
@@ -9,3 +9,6 @@ wayland-protocols-wlr = { version = "0.3.9", features = ["client"] }
 clap = { version = "4.5.53", features = ["derive", "cargo"] }
 clap_complete = "4.5.61"
 tabwriter = "1.4.1"
+
+[profile.release]
+opt-level = "s"

@@ -16,7 +16,7 @@ use wayland_protocols_wlr::output_management::v1::client::zwlr_output_manager_v1
 };
 use wayland_protocols_wlr::output_management::v1::client::zwlr_output_mode_v1::ZwlrOutputModeV1;
 
-static OUTPUT_MANAGER_INTERFACE_NAME: &str = "zwlr_output_manager_v1";
+pub static OUTPUT_MANAGER_INTERFACE_NAME: &str = "zwlr_output_manager_v1";
 
 /**
  * This method subscribes to the Global events. The global events advertise the capabilities of the system.
@@ -24,7 +24,7 @@ static OUTPUT_MANAGER_INTERFACE_NAME: &str = "zwlr_output_manager_v1";
 **/
 impl Dispatch<wl_registry::WlRegistry, ()> for AppData {
     fn event(
-        _state: &mut Self,
+        state: &mut Self,
         registry: &wl_registry::WlRegistry,
         event: wl_registry::Event,
         _: &(),
@@ -38,6 +38,7 @@ impl Dispatch<wl_registry::WlRegistry, ()> for AppData {
         } = event
         {
             if interface == OUTPUT_MANAGER_INTERFACE_NAME {
+                state.output_manager_found = true;
                 registry.bind::<ZwlrOutputManagerV1, _, _>(name, 4, qh, ());
             }
         }

@@ -17,3 +17,25 @@ tasks:
     cmds:
       - ffmpeg -i wlout.mp4 -vf "fps=12,scale=800:-1:flags=lanczos,palettegen" palette.png
       - ffmpeg -i wlout.mp4 -i palette.png -lavfi "fps=12,scale=800:-1:flags=lanczos[x]; [x][1:v] paletteuse=dither=sierra2_4a" -loop 0 video.gif
+
+  publish:
+    preconditions:
+      - sh: git diff --quiet
+        msg: "Git Worktree not Clean"
+
+    cmds:
+      - cargo install cargo-get
+      - cargo install cargo-edit
+      - cargo set-version --bump patch
+      - cargo build --profile=release
+      - |
+        git add . && git commit -m "version: $NEW_VERSION"
+        git tag $NEW_VERSION
+        git push $NEW_VERSION
+      - |
+        export NEW_VERSION=$(cargo get package.version)
+        sed -Ei "s/pkgver=(.*)/pkgver=$NEW_VERSION/g" pkgbase/PKGBUILD
+        sed -Ei "s/tag=(.*)/tag=$NEW_VERSION/g" pkgbase/PKGBUILD
+        cd pkgbase && makepkg --printsrcinfo > .SRCINFO
+        git add . && git commit -m "version: $NEW_VERSION"
+        git push origin master

@@ -91,6 +91,7 @@ pub struct AppData {
     pub manager: Option<ZwlrOutputManagerV1>,
     pub config_result: Option<ConfigResult>,
     pub config_serial: Option<u32>,
+    pub output_manager_found: bool
 }
 
 impl AppData {
