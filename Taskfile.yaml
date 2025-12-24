@@ -18,15 +18,33 @@ tasks:
       - ffmpeg -i wlout.mp4 -vf "fps=12,scale=800:-1:flags=lanczos,palettegen" palette.png
       - ffmpeg -i wlout.mp4 -i palette.png -lavfi "fps=12,scale=800:-1:flags=lanczos[x]; [x][1:v] paletteuse=dither=sierra2_4a" -loop 0 video.gif
 
+  publish_minor:
+    desc: "Increment a minor version and publish to AUR"
+    cmds:
+      - task: publish
+        vars:
+          INCREMENT: minor
+
+  publish_patch:
+    desc: "Increment a patch version and publish to AUR"
+    cmds:
+      - task: publish
+        vars:
+          INCREMENT: patch
+
   publish:
+    internal: true
     preconditions:
       - sh: git diff --quiet
         msg: "Git Worktree not Clean"
 
+    prompt:
+      - echo "Publishing {{.INCREMENT}}"
+
     cmds:
       - cargo install cargo-get
       - cargo install cargo-edit
-      - cargo set-version --bump patch
+      - cargo set-version --bump {{.INCREMENT}}
       - cargo build --profile=release
       - |
         export NEW_VERSION=$(cargo get package.version)
