@@ -31,11 +31,11 @@ tasks:
       - |
         git commit -am "version: $NEW_VERSION"
         git tag $NEW_VERSION
-        git push $NEW_VERSION
+        git push origin $NEW_VERSION
       - |
         export NEW_VERSION=$(cargo get package.version)
         sed -Ei "s/pkgver=(.*)/pkgver=$NEW_VERSION/g" pkgbase/PKGBUILD
         sed -Ei "s/tag=(.*)/tag=$NEW_VERSION/g" pkgbase/PKGBUILD
         cd pkgbase && makepkg --printsrcinfo > .SRCINFO
-        git add . && git commit -m "version: $NEW_VERSION"
+        git commit -am "version: $NEW_VERSION"
         git push origin master
