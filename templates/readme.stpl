@@ -58,26 +58,7 @@ Unix philosophy
 ## Command Quick Reference
 
 ```
-wlout [COMMAND]
-	list
-	info <display>
-	power <display> <power_mode>
-	move <display> <COMMAND>
-		above <other_display>
-		below <other_display>
-		right-of <other_display>
-		left-of <other_display>
-		position <x> <y>
-	mode <display> [COMMAND]
-		list
-		current
-		preferred
-		auto
-		set [mode]
-	mirror <display> <COMMAND>
-		same-as <other_display>
-	completion <shell>
-
+<%- command_tree %>
 ```
 
 Read the [full command reference](REFERENCE.md)

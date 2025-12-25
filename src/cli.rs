@@ -123,6 +123,7 @@ Applies position optimisation after moving to ensure that one of your displays i
                 .about("Manage the display mode resolution and refresh rate")
                 .arg(display_arg.clone())
                 .subcommand(Command::new("list")
+                    .visible_alias("print")
                     .about("List the available modes for a display"))
                 .subcommand(Command::new("current")
                     .about("Show the current mode for this display"))
@@ -157,7 +158,7 @@ Applies position optimisation after moving to ensure that one of your displays i
         )
         .subcommand(
             Command::new("completion")
-                .about("Generate shell completion script")
+                .about("Generate shell completion script. Dynamic completion for display names and modes is currently available for Zsh and Bash")
                 .arg(
                     Arg::new("shell")
                         .required(true)

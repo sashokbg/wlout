@@ -32,6 +32,13 @@ tasks:
         vars:
           INCREMENT: patch
 
+  generate_doc:
+    cmds:
+      - |
+        cargo run --bin generate_readme --features="markdown" > README.md
+      - |
+        cargo run --bin generate_full_ref --features="markdown" > REFERENCE.md
+
   publish:
     internal: true
     preconditions:
@@ -40,6 +47,9 @@ tasks:
 
     prompt:
       - echo "Publishing {{.INCREMENT}}"
+
+    deps:
+      - task: generate_doc
 
     cmds:
       - cargo install cargo-get
