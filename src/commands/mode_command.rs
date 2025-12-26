@@ -1,17 +1,15 @@
-use crate::commands::common::{apply, handle_result};
-use crate::model::{AppData, HeadMode, HeadModeInput};
+use crate::commands::common::{apply, handle_result, prompt};
+use crate::model::{AppData, ConfigResult, HeadMode, HeadModeInput};
+use std::process::exit;
 use wayland_client::EventQueue;
 
 pub fn mode_current_command(name: &str, state: AppData) {
-    let target_head = state
-        .get_head(name);
+    let target_head = state.get_head(name);
 
-    let mode = target_head
-        .get_current_mode()
-        .expect(&*format!(
-            "No current mode not found on display {}. It is probably off",
-            name
-        ));
+    let mode = target_head.get_current_mode().expect(&*format!(
+        "No current mode not found on display {}. It is probably off",
+        name
+    ));
 
     let string_result = format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate);
     println!("{}", string_result)
@@ -57,19 +55,38 @@ fn _get_preferred_mode(name: &str, state: &AppData) -> HeadMode {
 pub fn mode_set_command(
     name: &str,
     mode: &HeadModeInput,
+    force: &bool,
     mut state: AppData,
     mut event_queue: EventQueue<AppData>,
 ) {
     let target_head = state.get_head(name);
 
-    let target_mode = target_head
-        .find_mode(mode.width, mode.height, mode.rate)
-        .expect(&format!("Mode {} not found on display {}", mode, name));
+    let target_mode = target_head.find_mode(mode.width, mode.height, mode.rate);
 
-    let result = apply(&mut state, &mut event_queue, |config, qh| {
-        let head_config = config.enable_head(&target_head.head, qh, ());
-        head_config.set_mode(&target_mode.mode.clone().unwrap());
-    });
+    let result: ConfigResult;
+
+    if target_mode.is_none() {
+        if !force {
+            let prompt_msg = format!(
+                "The specified mode {} does not exist for display {name}. Set it as custom mode for this display ?",
+                mode
+            );
+            let read = prompt(&prompt_msg);
+
+            if read.to_lowercase() != "y" {
+                exit(1)
+            }
+        }
+        result = apply(&mut state, &mut event_queue, |config, qh| {
+            let head_config = config.enable_head(&target_head.head, qh, ());
+            head_config.set_custom_mode(mode.width, mode.height, mode.rate);
+        });
+    } else {
+        result = apply(&mut state, &mut event_queue, |config, qh| {
+            let head_config = config.enable_head(&target_head.head, qh, ());
+            head_config.set_mode(&target_mode.unwrap().mode.clone().unwrap());
+        });
+    }
     let success_message = &format!("Set mode {} for display {}", mode, name);
     let failure_message = &format!("Failed to set mode {} for display {}", mode, name);
 

@@ -23,6 +23,7 @@ For more information please visit: https://wayland.app/protocols/wlr-output-mana
         ")
         .arg_required_else_help(true)
         .subcommand(Command::new("list")
+            .visible_alias("print")
             .arg(Arg::new("verbose")
                      .help("Turn on verbose / detailed mode")
                      .long("verbose")
@@ -138,6 +139,13 @@ Applies position optimisation after moving to ensure that one of your displays i
                         Arg::new("mode")
                             .help("The mode format is <WIDTH>x<HEIGHT>@<RATE>")
                             .value_parser(DisplayModeParser {}),
+                    )
+                    .arg(
+                        Arg::new("force")
+                            .short('f')
+                            .long("force")
+                            .action(ArgAction::SetTrue)
+                            .help("Do not prompt when setting a custom mode.")
                     )
                 )
         )

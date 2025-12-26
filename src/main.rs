@@ -205,7 +205,10 @@ pub fn run() {
                 }
                 Some(("set", sub_sub_matches)) => {
                     match sub_sub_matches.get_one::<HeadModeInput>("mode") {
-                        Some(mode) => mode_set_command(name, mode, state, event_queue),
+                        Some(mode) => {
+                            let force = sub_sub_matches.get_one::<bool>("force").unwrap();
+                            mode_set_command(name, mode, force, state, event_queue)
+                        },
                         None => {}
                     }
                 }
