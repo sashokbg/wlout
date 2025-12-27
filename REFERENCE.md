@@ -57,6 +57,8 @@ List displays
 
 **Usage:** `wlout list [OPTIONS]`
 
+**Command Alias:** `print`
+
 ###### **Options:**
 
 * `-v`, `--verbose` — Turn on verbose / detailed mode
@@ -238,11 +240,15 @@ Set the display mode to its preferred settings
 
 Set the resolution and refresh rate for the display
 
-**Usage:** `wlout mode set [mode]`
+**Usage:** `wlout mode set [OPTIONS] [mode]`
 
 ###### **Arguments:**
 
 * `<MODE>` — The mode format is <WIDTH>x<HEIGHT>@<RATE>
+
+###### **Options:**
+
+* `-f`, `--force` — Do not prompt when setting a custom mode.
 
 
 
