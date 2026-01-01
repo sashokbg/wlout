@@ -17,6 +17,7 @@ opt-level = "s"
 
 [features]
 markdown = ["clap-markdown", "sailfish"]
+wlroot = []
 
 [[bin]]
 name = "generate_readme"

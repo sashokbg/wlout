@@ -18,15 +18,15 @@
 mod handles;
 mod parsers;
 
+mod backends;
 mod cli;
 mod commands;
 mod head_printer;
 mod model;
 
 use crate::cli::{build_cli, NAME_ARG_ID};
+use crate::commands::commands::{Executable, InfoCommand, ListCommand};
 use crate::commands::completion_command::completion_command;
-use crate::commands::info_command::info_command;
-use crate::commands::list_command::list_command;
 use crate::commands::mirror_command::mirror_command;
 use crate::commands::mode_command::{
     mode_auto_command, mode_current_command, mode_list_command, mode_preferred_command,
@@ -72,15 +72,17 @@ pub fn run() {
             }
         }
         Some(("list", sub_matches)) => {
-            let verbose = sub_matches.get_one::<bool>("verbose").unwrap();
-            list_command(state, verbose.clone());
+            let verbose = sub_matches.get_one::<bool>("verbose").unwrap().clone();
+
+            ListCommand { verbose }.execute()
         }
         Some(("info", sub_matches)) => {
             let name = sub_matches
                 .get_one::<String>(cli::NAME_ARG_ID)
-                .expect(format!("{} is required", cli::NAME_ARG_ID).as_str());
+                .expect(format!("{} is required", cli::NAME_ARG_ID).as_str())
+                .clone();
 
-            info_command(name, state);
+            InfoCommand { name }.execute();
         }
         Some(("move", sub_matches)) => {
             let name = sub_matches
@@ -208,7 +210,7 @@ pub fn run() {
                         Some(mode) => {
                             let force = sub_sub_matches.get_one::<bool>("force").unwrap();
                             mode_set_command(name, mode, force, state, event_queue)
-                        },
+                        }
                         None => {}
                     }
                 }
@@ -219,8 +221,8 @@ pub fn run() {
             }
         }
         None => {
-            let verbose = matches.get_one::<bool>("verbose").unwrap();
-            list_command(state, verbose.clone())
+            let verbose = matches.get_one::<bool>("verbose").unwrap().clone();
+            ListCommand { verbose }.execute()
         }
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }
