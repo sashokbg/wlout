@@ -25,9 +25,8 @@ mod head_printer;
 mod model;
 
 use crate::cli::{build_cli, NAME_ARG_ID};
-use crate::commands::commands::{Executable, InfoCommand, ListCommand};
+use crate::commands::commands::{Executable, InfoCommand, ListCommand, MirrorCommand};
 use crate::commands::completion_command::completion_command;
-use crate::commands::mirror_command::mirror_command;
 use crate::commands::mode_command::{
     mode_auto_command, mode_current_command, mode_list_command, mode_preferred_command,
     mode_set_command,
@@ -182,7 +181,11 @@ pub fn run() {
                         exit(1);
                     }
 
-                    mirror_command(name, other_display, &mut state, event_queue);
+                    MirrorCommand {
+                        mirrored_display_name: name.clone(),
+                        reference_display_name: other_display.clone(),
+                    }
+                    .execute()
                 }
                 _ => {}
             }

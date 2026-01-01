@@ -7,5 +7,10 @@ pub struct InfoCommand {
 }
 
 pub struct ListCommand {
-    pub verbose: bool
+    pub verbose: bool,
+}
+
+pub struct MirrorCommand {
+    pub mirrored_display_name: String,
+    pub reference_display_name: String,
 }
