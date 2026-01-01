@@ -31,7 +31,7 @@ use crate::commands::mode_command::{
     ModeAutoCommand, ModeCurrentCommand, ModeListCommand, ModePreferredCommand, ModeSetCommand,
 };
 use crate::commands::move_command::{
-    move_command, move_relative_command, REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF,
+    MoveCommand, MoveRelativeCommand, REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF,
     REL_POS_RIGHT_OF,
 };
 use crate::commands::power_command::power_command;
@@ -49,7 +49,7 @@ pub fn run() {
         return;
     }
 
-    let (mut event_queue, mut state) = connect_wayland_dm();
+    let (event_queue, state) = connect_wayland_dm();
 
     match matches.subcommand() {
         Some(("power", sub_matches)) => {
@@ -98,13 +98,12 @@ pub fn run() {
                         exit(1);
                     }
 
-                    move_relative_command(
-                        name,
-                        other_display,
-                        REL_POS_ABOVE,
-                        &mut state,
-                        event_queue,
-                    );
+                    MoveRelativeCommand {
+                        moved_display_name: name.clone(),
+                        reference_display_name: other_display.clone(),
+                        pos: REL_POS_ABOVE.to_string(),
+                    }
+                    .execute();
                 }
                 Some((REL_POS_BELOW, sub_sub_sub_matches)) => {
                     let other_display = sub_sub_sub_matches
@@ -115,13 +114,12 @@ pub fn run() {
                         exit(1);
                     }
 
-                    move_relative_command(
-                        name,
-                        other_display,
-                        REL_POS_BELOW,
-                        &mut state,
-                        event_queue,
-                    );
+                    MoveRelativeCommand {
+                        moved_display_name: name.clone(),
+                        reference_display_name: other_display.clone(),
+                        pos: REL_POS_BELOW.to_string(),
+                    }
+                    .execute();
                 }
                 Some(("right-of", sub_sub_sub_matches)) => {
                     let other_display = sub_sub_sub_matches
@@ -132,13 +130,12 @@ pub fn run() {
                         exit(1);
                     }
 
-                    move_relative_command(
-                        name,
-                        other_display,
-                        REL_POS_RIGHT_OF,
-                        &mut state,
-                        event_queue,
-                    );
+                    MoveRelativeCommand {
+                        moved_display_name: name.clone(),
+                        reference_display_name: other_display.clone(),
+                        pos: REL_POS_RIGHT_OF.to_string(),
+                    }
+                    .execute();
                 }
                 Some(("left-of", sub_sub_sub_matches)) => {
                     let other_display = sub_sub_sub_matches
@@ -149,19 +146,23 @@ pub fn run() {
                         exit(1);
                     }
 
-                    move_relative_command(
-                        name,
-                        other_display,
-                        REL_POS_LEFT_OF,
-                        &mut state,
-                        event_queue,
-                    );
+                    MoveRelativeCommand {
+                        moved_display_name: name.clone(),
+                        reference_display_name: other_display.clone(),
+                        pos: REL_POS_LEFT_OF.to_string(),
+                    }
+                    .execute();
                 }
                 Some(("position", sub_sub_sub_matches)) => {
                     let x = sub_sub_sub_matches.get_one::<i32>("x").unwrap();
                     let y = sub_sub_sub_matches.get_one::<i32>("y").unwrap();
 
-                    move_command(name, x.clone(), y.clone(), state, event_queue);
+                    MoveCommand {
+                        name: name.clone(),
+                        x: x.clone(),
+                        y: y.clone(),
+                    }
+                    .execute();
                 }
                 None => todo!(),
                 Some((&_, _)) => todo!(),

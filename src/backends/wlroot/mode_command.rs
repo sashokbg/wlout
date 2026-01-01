@@ -4,7 +4,7 @@ use crate::commands::commands::Executable;
 use crate::commands::mode_command::{
     ModeAutoCommand, ModeCurrentCommand, ModeListCommand, ModePreferredCommand, ModeSetCommand,
 };
-use crate::model::{AppData, ConfigResult, HeadMode, HeadModeInput};
+use crate::model::{AppData, ConfigResult, HeadMode};
 use std::process::exit;
 
 impl WaylandCommand for ModeCurrentCommand {}

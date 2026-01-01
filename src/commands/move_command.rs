@@ -1,93 +1,16 @@
-use crate::commands::common::{apply, handle_result};
-use crate::model::AppData;
-use wayland_client::EventQueue;
-
 pub const REL_POS_ABOVE: &str = "above";
 pub const REL_POS_BELOW: &str = "below";
 pub const REL_POS_LEFT_OF: &str = "left-of";
 pub const REL_POS_RIGHT_OF: &str = "right-of";
 
-pub fn move_relative_command(
-    moved_display_name: &String,
-    reference_display_name: &String,
-    pos: &str,
-    state: &mut AppData,
-    mut event_queue: EventQueue<AppData>,
-) {
-    let (moved_display_mode, moved_display_info, reference_display_mode, reference_display_info) = {
-        let moved_display_info = state.get_head(moved_display_name);
-
-        let reference_display_info = state.get_head(reference_display_name);
-
-        let moved_display_mode = moved_display_info
-            .get_current_mode()
-            .expect("The display has no current mode set. Is it switched on ?");
-
-        let reference_display_mode = reference_display_info
-            .get_current_mode()
-            .expect("The display has no current mode set. Is it switched on ?");
-        (
-            moved_display_mode.clone(),
-            moved_display_info.clone(),
-            reference_display_mode.clone(),
-            reference_display_info.clone(),
-        )
-    };
-
-    let result = apply(state, &mut event_queue, |config, qh| {
-        let moved_display_config = config.enable_head(&moved_display_info.head, &qh, ());
-
-        match pos {
-            REL_POS_ABOVE => {
-                moved_display_config.set_position(
-                    reference_display_info.position_x.unwrap(),
-                    reference_display_info.position_y.unwrap() - moved_display_mode.height,
-                );
-            }
-            REL_POS_BELOW => {
-                moved_display_config.set_position(
-                    reference_display_info.position_x.unwrap(),
-                    reference_display_info.position_y.unwrap() + reference_display_mode.height,
-                );
-            }
-            REL_POS_RIGHT_OF => {
-                moved_display_config.set_position(
-                    reference_display_info.position_x.unwrap() + reference_display_mode.width,
-                    reference_display_info.position_y.unwrap(),
-                );
-            }
-            REL_POS_LEFT_OF => {
-                moved_display_config.set_position(
-                    reference_display_info.position_x.unwrap() - moved_display_mode.width,
-                    reference_display_info.position_y.unwrap(),
-                );
-            }
-            &_ => todo!(),
-        }
-    });
-
-    let success = format!("Moved display {moved_display_name} {pos} {reference_display_name}");
-    let fail =
-        format!("Unable to move display {moved_display_name} above {reference_display_name}");
-    handle_result(result, &success, &fail)
+pub struct MoveRelativeCommand {
+    pub moved_display_name: String,
+    pub reference_display_name: String,
+    pub pos: String,
 }
 
-pub fn move_command(
-    name: &str,
-    x: i32,
-    y: i32,
-    mut state: AppData,
-    mut event_queue: EventQueue<AppData>,
-) {
-    let target_head = state.get_head(name).head.clone();
-
-    let config_result = apply(&mut state, &mut event_queue, |configuration, qh| {
-        let head_config = configuration.enable_head(&target_head, &qh, ());
-        head_config.set_position(x, y);
-    });
-
-    let success_message = &format!("Set position for display {} to x: {} y: {}", name, x, y);
-    let error_message = &format!("Failed to set position for display {}", name);
-
-    handle_result(config_result, success_message, error_message);
+pub struct MoveCommand {
+    pub name: String,
+    pub x: i32,
+    pub y: i32,
 }
