@@ -28,8 +28,7 @@ use crate::cli::{build_cli, NAME_ARG_ID};
 use crate::commands::commands::{Executable, InfoCommand, ListCommand, MirrorCommand};
 use crate::commands::completion_command::completion_command;
 use crate::commands::mode_command::{
-    mode_auto_command, mode_current_command, mode_list_command, mode_preferred_command,
-    mode_set_command,
+    ModeAutoCommand, ModeCurrentCommand, ModeListCommand, ModePreferredCommand, ModeSetCommand,
 };
 use crate::commands::move_command::{
     move_command, move_relative_command, REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF,
@@ -193,32 +192,38 @@ pub fn run() {
         Some(("mode", sub_matches)) => {
             let name = sub_matches
                 .get_one::<String>(NAME_ARG_ID)
-                .expect(format!("{} is required", NAME_ARG_ID).as_str());
+                .expect(format!("{} is required", NAME_ARG_ID).as_str())
+                .clone();
 
             match sub_matches.subcommand() {
                 Some(("current", _)) => {
-                    mode_current_command(name, state);
+                    ModeCurrentCommand { name: name.clone() }.execute();
                 }
                 Some(("preferred", _)) => {
-                    mode_preferred_command(name, &state);
+                    ModePreferredCommand { name: name.clone() }.execute();
                 }
                 Some(("auto", _)) => {
-                    mode_auto_command(name, &mut state, &mut event_queue);
+                    ModeAutoCommand { name: name.clone() }.execute();
                 }
                 Some(("list", _)) => {
-                    mode_list_command(name, state);
+                    ModeListCommand { name: name.clone() }.execute();
                 }
                 Some(("set", sub_sub_matches)) => {
                     match sub_sub_matches.get_one::<HeadModeInput>("mode") {
                         Some(mode) => {
-                            let force = sub_sub_matches.get_one::<bool>("force").unwrap();
-                            mode_set_command(name, mode, force, state, event_queue)
+                            let force = *sub_sub_matches.get_one::<bool>("force").unwrap();
+                            ModeSetCommand {
+                                name: name.clone(),
+                                mode: mode.clone(),
+                                force,
+                            }
+                            .execute()
                         }
                         None => {}
                     }
                 }
                 None => {
-                    mode_list_command(name, state);
+                    ModeListCommand { name: name.clone() }.execute();
                 }
                 Some((&_, _)) => todo!(),
             }

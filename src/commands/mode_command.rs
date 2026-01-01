@@ -1,133 +1,23 @@
-use crate::commands::common::{apply, handle_result, prompt};
-use crate::model::{AppData, ConfigResult, HeadMode, HeadModeInput};
-use std::process::exit;
-use wayland_client::EventQueue;
+use crate::model::HeadModeInput;
 
-pub fn mode_current_command(name: &str, state: AppData) {
-    let target_head = state.get_head(name);
-
-    let mode = target_head.get_current_mode().expect(&*format!(
-        "No current mode not found on display {}. It is probably off",
-        name
-    ));
-
-    let string_result = format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate);
-    println!("{}", string_result)
+pub struct ModeCurrentCommand {
+    pub name: String,
 }
 
-pub fn mode_auto_command(name: &str, state: &mut AppData, event_queue: &mut EventQueue<AppData>) {
-    let target_head = state.get_head(name);
-
-    let mode = _get_preferred_mode(name, state);
-
-    let result = apply(state, event_queue, |config, qh| {
-        let head_config = config.enable_head(&target_head.head, qh, ());
-        head_config.set_mode(&mode.mode.clone().unwrap());
-    });
-
-    let success_message = &format!("Auto set mode {} for display {}", mode, name);
-    let failure_message = &format!("Failed to set mode {} for display {}", mode, name);
-
-    handle_result(result, success_message, failure_message);
+pub struct ModeAutoCommand {
+    pub name: String,
 }
 
-pub fn mode_preferred_command(name: &str, state: &AppData) {
-    let mode = _get_preferred_mode(name, state);
-
-    let string_result = format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate);
-    println!("{}", string_result)
+pub struct ModePreferredCommand {
+    pub name: String,
 }
 
-fn _get_preferred_mode(name: &str, state: &AppData) -> HeadMode {
-    let target_head = state.get_head(name);
-
-    let mode = target_head
-        .modes
-        .values()
-        .find(|m| m.is_preferred)
-        .expect(&*format!(
-            "No preferred mode not found on display {}.",
-            name
-        ));
-    mode.clone()
+pub struct ModeSetCommand {
+    pub name: String,
+    pub mode: HeadModeInput,
+    pub force: bool,
 }
 
-pub fn mode_set_command(
-    name: &str,
-    mode: &HeadModeInput,
-    force: &bool,
-    mut state: AppData,
-    mut event_queue: EventQueue<AppData>,
-) {
-    let target_head = state.get_head(name);
-
-    let target_mode = target_head.find_mode(mode.width, mode.height, mode.rate);
-
-    let result: ConfigResult;
-
-    if target_mode.is_none() {
-        if !force {
-            let prompt_msg = format!(
-                "The specified mode {} does not exist for display {name}. Set it as custom mode for this display ?",
-                mode
-            );
-            let read = prompt(&prompt_msg);
-
-            if read.to_lowercase() != "y" {
-                exit(1)
-            }
-        }
-        result = apply(&mut state, &mut event_queue, |config, qh| {
-            let head_config = config.enable_head(&target_head.head, qh, ());
-            head_config.set_custom_mode(mode.width, mode.height, mode.rate);
-        });
-    } else {
-        result = apply(&mut state, &mut event_queue, |config, qh| {
-            let head_config = config.enable_head(&target_head.head, qh, ());
-            head_config.set_mode(&target_mode.unwrap().mode.clone().unwrap());
-        });
-    }
-    let success_message = &format!("Set mode {} for display {}", mode, name);
-    let failure_message = &format!("Failed to set mode {} for display {}", mode, name);
-
-    handle_result(result, success_message, failure_message);
-}
-
-pub fn mode_list_command(name: &str, state: AppData) {
-    for head in state.heads.values() {
-        if head.name == Some(name.parse().unwrap()) {
-            let mut modes: Vec<_> = head.modes.values().collect();
-            modes.sort_by(|a, b| {
-                b.height
-                    .cmp(&a.height)
-                    .then(b.width.cmp(&a.width))
-                    .then(b.rate.cmp(&a.rate))
-            });
-
-            for (i, mode) in modes.iter().enumerate() {
-                let mut string_result = format!("{}x{}@{:.0}", mode.width, mode.height, mode.rate);
-
-                if mode.is_current || mode.is_preferred {
-                    string_result += "(";
-                    if mode.is_preferred {
-                        string_result += "preferred"
-                    }
-                    if mode.is_current {
-                        if mode.is_preferred {
-                            string_result += ","
-                        }
-                        string_result += "current"
-                    }
-                    string_result += ")"
-                }
-
-                if i == modes.len() - 1 {
-                    string_result += "\n"
-                } else {
-                    string_result += "\t"
-                }
-                print!("{}", string_result)
-            }
-        }
-    }
+pub struct ModeListCommand {
+    pub name: String,
 }

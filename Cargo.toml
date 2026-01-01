@@ -16,6 +16,7 @@ sailfish = { version = "0.10.1", optional = true }
 opt-level = "s"
 
 [features]
+default = ["wlroot"]
 markdown = ["clap-markdown", "sailfish"]
 wlroot = []
 
