@@ -25,21 +25,19 @@ mod head_printer;
 mod model;
 
 use crate::cli::{build_cli, NAME_ARG_ID};
-use crate::commands::commands::{Executable, InfoCommand, ListCommand, MirrorCommand};
-use crate::commands::completion_command::completion_command;
-use crate::commands::mode_command::{
+use crate::commands::commands::{
+    Executable, InfoCommand, ListCommand, MirrorCommand, PowerCommand,
+};
+use crate::commands::commands::{
     ModeAutoCommand, ModeCurrentCommand, ModeListCommand, ModePreferredCommand, ModeSetCommand,
 };
-use crate::commands::move_command::{
+use crate::commands::commands::{
     MoveCommand, MoveRelativeCommand, REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF,
     REL_POS_RIGHT_OF,
 };
-use crate::commands::power_command::power_command;
-use crate::handles::OUTPUT_MANAGER_INTERFACE_NAME;
-use crate::model::{AppData, HeadModeInput};
-use std::collections::HashMap;
+use crate::commands::completion_command::completion_command;
+use crate::model::HeadModeInput;
 use std::process::exit;
-use wayland_client::{Connection, EventQueue};
 
 pub fn run() {
     let matches = build_cli().get_matches();
@@ -48,8 +46,6 @@ pub fn run() {
         completion_command(sub_matches, &mut new_cli);
         return;
     }
-
-    let (event_queue, state) = connect_wayland_dm();
 
     match matches.subcommand() {
         Some(("power", sub_matches)) => {
@@ -61,8 +57,18 @@ pub fn run() {
             let force = sub_matches.get_one::<bool>("force").unwrap();
 
             match power_mode.as_str() {
-                "on" => power_command(name, true, state, event_queue, force),
-                "off" => power_command(name, false, state, event_queue, force),
+                "on" => PowerCommand {
+                    name: name.clone(),
+                    on: true,
+                    force: force.clone(),
+                }
+                .execute(),
+                "off" => PowerCommand {
+                    name: name.clone(),
+                    on: false,
+                    force: force.clone(),
+                }
+                .execute(),
                 &_ => {
                     eprintln!("Power mode should be on / off");
                     exit(1);
@@ -235,38 +241,6 @@ pub fn run() {
         }
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }
-}
-
-pub(crate) fn connect_wayland_dm() -> (EventQueue<AppData>, AppData) {
-    let conn = Connection::connect_to_env().expect("failed to connect to a Wayland compositor");
-    let display = conn.display();
-    let mut event_queue = conn.new_event_queue::<AppData>();
-
-    let _registry = display.get_registry(&event_queue.handle(), ());
-
-    let mut state = AppData {
-        initial_done: false,
-        heads: HashMap::new(),
-        manager: None,
-        config_result: None,
-        config_serial: None,
-        output_manager_found: false,
-    };
-
-    event_queue.roundtrip(&mut state).unwrap();
-
-    if !state.output_manager_found {
-        eprintln!(
-            "Your system does not support the {} interface. This tool only works on wlroots compositors.",
-            OUTPUT_MANAGER_INTERFACE_NAME
-        );
-        exit(1)
-    }
-
-    while !state.initial_done {
-        event_queue.blocking_dispatch(&mut state).unwrap();
-    }
-    (event_queue, state)
 }
 
 fn main() {

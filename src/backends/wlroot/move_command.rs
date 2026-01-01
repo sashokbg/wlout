@@ -1,7 +1,7 @@
 use crate::backends::common::{apply, handle_result};
 use crate::backends::wlroot::connect_trait::WaylandCommand;
 use crate::commands::commands::Executable;
-use crate::commands::move_command::{
+use crate::commands::commands::{
     MoveCommand, MoveRelativeCommand, REL_POS_ABOVE, REL_POS_BELOW, REL_POS_LEFT_OF,
     REL_POS_RIGHT_OF,
 };
@@ -16,26 +16,29 @@ impl Executable for MoveRelativeCommand {
         let moved_display_name = &self.moved_display_name;
         let reference_display_name = &self.reference_display_name;
 
-        let (moved_display_mode, moved_display_info, reference_display_mode, reference_display_info) =
-            {
-                let moved_display_info = state.get_head(moved_display_name);
+        let (
+            moved_display_mode,
+            moved_display_info,
+            reference_display_mode,
+            reference_display_info,
+        ) = {
+            let moved_display_info = state.get_head(moved_display_name);
+            let reference_display_info = state.get_head(reference_display_name);
 
-                let reference_display_info = state.get_head(reference_display_name);
+            let moved_display_mode = moved_display_info
+                .get_current_mode()
+                .expect("The display has no current mode set. Is it switched on ?");
 
-                let moved_display_mode = moved_display_info
-                    .get_current_mode()
-                    .expect("The display has no current mode set. Is it switched on ?");
-
-                let reference_display_mode = reference_display_info
-                    .get_current_mode()
-                    .expect("The display has no current mode set. Is it switched on ?");
-                (
-                    moved_display_mode.clone(),
-                    moved_display_info.clone(),
-                    reference_display_mode.clone(),
-                    reference_display_info.clone(),
-                )
-            };
+            let reference_display_mode = reference_display_info
+                .get_current_mode()
+                .expect("The display has no current mode set. Is it switched on ?");
+            (
+                moved_display_mode.clone(),
+                moved_display_info.clone(),
+                reference_display_mode.clone(),
+                reference_display_info.clone(),
+            )
+        };
 
         let result = apply(&mut state, &mut event_queue, |config, qh| {
             let moved_display_config = config.enable_head(&moved_display_info.head, &qh, ());

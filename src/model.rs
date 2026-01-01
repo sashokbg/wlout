@@ -101,7 +101,7 @@ pub struct AppData {
 }
 
 impl AppData {
-    pub(crate) fn get_head(&self, name: &str) -> HeadInfo {
+    pub fn get_head(&self, name: &str) -> HeadInfo {
         self.heads
             .values()
             .find(|head_info| head_info.name.as_deref() == Some(name))
@@ -110,7 +110,7 @@ impl AppData {
     }
 
     #[allow(dead_code)]
-    pub(crate) fn try_get_head(&self, name: &str) -> Option<&HeadInfo> {
+    pub fn try_get_head(&self, name: &str) -> Option<&HeadInfo> {
         self.heads
             .values()
             .find(|head_info| head_info.name.as_deref() == Some(name))

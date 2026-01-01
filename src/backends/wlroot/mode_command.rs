@@ -1,7 +1,7 @@
 use crate::backends::common::{apply, handle_result, prompt};
 use crate::backends::wlroot::connect_trait::WaylandCommand;
 use crate::commands::commands::Executable;
-use crate::commands::mode_command::{
+use crate::commands::commands::{
     ModeAutoCommand, ModeCurrentCommand, ModeListCommand, ModePreferredCommand, ModeSetCommand,
 };
 use crate::model::{AppData, ConfigResult, HeadMode};
@@ -71,8 +71,7 @@ impl Executable for ModeSetCommand {
             if !self.force {
                 let prompt_msg = format!(
                     "The specified mode {} does not exist for display {}. Set it as custom mode for this display ?",
-                    self.mode,
-                    self.name
+                    self.mode, self.name
                 );
                 let read = prompt(&prompt_msg);
 
@@ -91,7 +90,8 @@ impl Executable for ModeSetCommand {
             });
         }
         let success_message = &format!("Set mode {} for display {}", self.mode, self.name);
-        let failure_message = &format!("Failed to set mode {} for display {}", self.mode, self.name);
+        let failure_message =
+            &format!("Failed to set mode {} for display {}", self.mode, self.name);
 
         handle_result(result, success_message, failure_message);
     }
